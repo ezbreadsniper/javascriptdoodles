@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+    />
+    <meta name="color-scheme" content="light" />
+    <link rel="icon" href="/head.svg" type="image/svg+xml" />
+    <meta
+      name="description"
+      content="A sheet of rolled heads. They follow the pointer."
+    />
+    <script type="module" src="/src/sheet.js"></script>
+    <link rel="modulepreload" href="/src/typeset.js" />
+    <link rel="modulepreload" href="/src/core.js" />
+    <link rel="modulepreload" href="/src/pose.js" />
+    <link rel="modulepreload" href="/src/cloud.js" />
+    <link rel="modulepreload" href="/src/field.js" />
+    <link rel="modulepreload" href="/src/palette.js" />
+    <link rel="modulepreload" href="/src/pen.js" />
+    <link rel="modulepreload" href="/src/head.js" />
+    <link rel="modulepreload" href="/src/face.js" />
+    <link rel="modulepreload" href="/src/afro.js" />
+    <link rel="modulepreload" href="/src/shell.js" />
+    <link rel="modulepreload" href="/src/hat.js" />
+    <link rel="modulepreload" href="/src/hair.js" />
+    <link rel="modulepreload" href="/src/extras.js" />
+    <link rel="modulepreload" href="/src/paper.js" />
+    <link rel="modulepreload" href="/src/renderer.js" />
+    <link rel="modulepreload" href="/src/styles.js" />
+    <link rel="modulepreload" href="/src/grid.js" />
+    <link rel="modulepreload" href="/src/gaze.js" />
+    <link rel="modulepreload" href="/src/names.js" />
+    <link rel="stylesheet" href="/src/sheet.css" />
+  </head>
+  <body class="press">
+    <canvas id="sheet"></canvas>
+
+    <nav class="bar" aria-label="Controls">
+      <button id="roll" type="button">New sheet</button>
+      <!-- The way into the docs. A book, not a word: set beside "New
+       sheet", a label reading "Docs" would speak just as loudly, and the
+       docs are not the sheet. They lie alongside it, for whoever goes
+       looking. The title names them - for the mouse, the screen reader
+       and the keyboard alike. -->
+      <a
+        class="to-docs"
+        href="https://allmyfriendsaremadeofjavascript.nikolaj-sokolowski.de/docs/"
+        title="Docs"
+      >
+        <svg
+          viewBox="0 0 16 16"
+          width="15"
+          height="15"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.1"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path
+            d="M8 4.3C7 3.5 5.6 3.1 3.7 3.1H2.2v9h1.5c1.9 0 3.3.4 4.3 1.2"
+          />
+          <path
+            d="M8 4.3c1-.8 2.4-1.2 4.3-1.2h1.5v9h-1.5c-1.9 0-3.3.4-4.3 1.2"
+          />
+          <path d="M8 4.3v9" />
+        </svg>
+        <span class="visually-hidden">Docs</span>
+      </a>
+    </nav>
+
+    <!-- The way into the workshop. It appears only in the close-up view:
+     there ONE head is meant, and only then does "edit this head" refer to
+     anything at all. On the sheet it would stand beside nine heads and
+     mean none of them.
+
+     A die, not a word - like the book beside it. It also sits in the same
+     place: in the close-up view the bar and its book are gone, so the
+     corner is free, and only ever one of the two is there. The title
+     names it, for the mouse, the screen reader and the keyboard alike. -->
+    <a
+      class="to-workshop"
+      id="to-workshop"
+      href="https://allmyfriendsaremadeofjavascript.nikolaj-sokolowski.de/werkstatt.html"
+      title="Workshop"
+    >
+      <svg
+        viewBox="0 0 16 16"
+        width="15"
+        height="15"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.1"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <rect x="2.6" y="2.6" width="10.8" height="10.8" rx="2.6" />
+        <circle cx="5.5" cy="5.5" r="0.9" fill="currentColor" stroke="none" />
+        <circle cx="8" cy="8" r="0.9" fill="currentColor" stroke="none" />
+        <circle
+          cx="10.5"
+          cy="10.5"
+          r="0.9"
+          fill="currentColor"
+          stroke="none"
+        />
+      </svg>
+      <span class="visually-hidden">Workshop</span>
+    </a>
+  </body>
+</html>

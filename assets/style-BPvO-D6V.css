@@ -1,0 +1,207 @@
+:root {
+  --tone-paper: #faf8f4;
+  --tone-ink: #2c2d3c;
+  --tone-grey: #8b8894;
+  --tone-grey-light: #c9c6cd;
+  --surface: var(--tone-paper);
+  --foreground: var(--tone-ink);
+  --quiet: var(--tone-grey);
+  --line: var(--tone-grey-light);
+  --mark-canvas: var(--tone-grey);
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --font-text: ui-serif, Georgia, "Times New Roman", serif;
+}
+* {
+  box-sizing: border-box;
+}
+@view-transition {
+  navigation: auto;
+}
+::view-transition-old(root) {
+  animation-duration: 0.36s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+::view-transition-new(root) {
+  animation-duration: 0.36s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+html,
+body {
+  touch-action: none;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+body {
+  background: var(--surface);
+  color: var(--foreground);
+  font-family: var(--font-mono);
+  -webkit-font-smoothing: antialiased;
+  font-size: 11px;
+}
+#sheet {
+  touch-action: none;
+  display: block;
+  position: fixed;
+  inset: 0;
+}
+.names {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+}
+.names span,
+.name-large {
+  color: var(--mark-canvas);
+  letter-spacing: 0.22em;
+  white-space: nowrap;
+  pointer-events: auto;
+  -webkit-user-select: text;
+  user-select: text;
+  line-height: 1;
+  position: fixed;
+  transform: translate(-50%);
+}
+.name-large {
+  opacity: 0;
+}
+.head {
+  pointer-events: none;
+  padding: 18px 22px 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+h1 {
+  width: min(480px, 100%);
+  font-family: var(--font-mono);
+  margin: 0 auto;
+  font-weight: 400;
+  line-height: 0;
+}
+h1 svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.bar {
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 8px 18px;
+  transition: opacity 0.48s;
+  display: flex;
+  position: fixed;
+  bottom: 24px;
+  left: 0;
+  right: 0;
+}
+body.rest .bar {
+  opacity: 0.3;
+}
+body.large .bar {
+  opacity: 0;
+  pointer-events: none;
+}
+button {
+  font: inherit;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--foreground);
+  cursor: pointer;
+  text-underline-offset: 0.5em;
+  background: 0 0;
+  border: 0;
+  border-radius: 0;
+  padding: 6px 2px;
+  -webkit-text-decoration: underline #0000;
+  text-decoration: underline #0000;
+  text-decoration-thickness: 1px;
+  transition:
+    text-decoration-color 0.16s,
+    color 0.16s;
+}
+.to-docs {
+  color: var(--quiet);
+  align-items: center;
+  padding: 6px;
+  transition: color 0.16s;
+  display: inline-flex;
+  position: absolute;
+  bottom: 0;
+  right: 22px;
+}
+.to-docs:hover {
+  color: var(--foreground);
+}
+.to-docs:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 2px;
+}
+.visually-hidden {
+  clip-path: inset(50%);
+  white-space: nowrap;
+  width: 1px;
+  height: 1px;
+  position: absolute;
+  overflow: hidden;
+}
+button:hover {
+  -webkit-text-decoration-color: var(--line);
+  text-decoration-color: var(--line);
+}
+button:active {
+  -webkit-text-decoration-color: var(--foreground);
+  text-decoration-color: var(--foreground);
+}
+button:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 3px;
+}
+.to-workshop {
+  color: var(--quiet);
+  opacity: 0;
+  pointer-events: none;
+  align-items: center;
+  padding: 6px;
+  transition:
+    opacity 0.32s,
+    color 0.16s;
+  display: inline-flex;
+  position: fixed;
+  bottom: 24px;
+  right: 22px;
+}
+body.large .to-workshop {
+  opacity: 1;
+  pointer-events: auto;
+}
+.to-workshop:hover {
+  color: var(--foreground);
+}
+.to-workshop:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 2px;
+}
+@media (width<=720px) {
+  .head {
+    padding: 12px 10px 0;
+  }
+  .bar,
+  .to-workshop {
+    bottom: 16px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition-duration: 1ms !important;
+  }
+  ::view-transition-old(root) {
+    animation-duration: 1ms;
+  }
+  ::view-transition-new(root) {
+    animation-duration: 1ms;
+  }
+}

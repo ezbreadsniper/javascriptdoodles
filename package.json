@@ -1,0 +1,10 @@
+{
+  "name": "all-my-friends-recovered",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node server.mjs",
+    "check": "node --check server.mjs && node scripts/check-modules.mjs"
+  }
+}

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- One of the heads, boiled down to 32 pixels.
+
+       What on the sheet is made of a thousand band points has to make do
+       here with four runs: skull, two eyes, one mouth. Everything else -
+       contour, hair, paper grain - collapses into a grey smudge at this
+       size anyway.
+
+       The line is still not straight for all that: the skull is a curve
+       with uneven flanks, and the two eyes sit at different heights. An
+       exactly symmetrical face would be a pictogram, and a pictogram is
+       precisely what this press does not draw. -->
+  <path d="M16 3.4c5.5 0 8.6 4.1 8.6 9.6 0 6.2-3.4 10.4-8.7 10.4-5.4 0-8.5-4.1-8.5-10.2 0-5.6 3.2-9.8 8.6-9.8z"
+        fill="#f7f5f1" stroke="#2b2a33" stroke-width="2.1" stroke-linejoin="round"/>
+  <ellipse cx="12.4" cy="13.2" rx="1.7" ry="1.9" fill="#2b2a33"/>
+  <ellipse cx="19.7" cy="13.6" rx="1.7" ry="1.9" fill="#2b2a33"/>
+  <path d="M13 18.4c1.9 1.5 4.2 1.4 6 0" fill="none" stroke="#2b2a33" stroke-width="1.7" stroke-linecap="round"/>
+  <path d="M16 23.4v4.4" fill="none" stroke="#2b2a33" stroke-width="2.1" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="color-scheme" content="light">
+<link rel="icon" href="/head.svg" type="image/svg+xml">
+<meta name="description" content="A sheet of rolled heads. They follow the pointer.">
+<!-- In the head and render-blocking, not at the end of the body: the
+     first picture of this page should already be the finished one.
+     Otherwise the browser paints the empty page first and then, a few
+     frames later, the head into it - and switching between sheet and
+     workshop you see exactly that flicker. The transition itself is a
+     cross-fade (@view-transition in style.css); it holds the old picture
+     until the new one is ready, and for that it needs a ready one. -->
+  <script type="module" crossorigin blocking="render" src="/assets/sheet-WUSomGc7.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/typeset-CUjnR0Vm.js">
+  <link rel="modulepreload" crossorigin href="/assets/core-Calr4rc2.js">
+  <link rel="modulepreload" crossorigin href="/assets/pose-DeHbWJSp.js">
+  <link rel="modulepreload" crossorigin href="/assets/cloud-D0bWzE4O.js">
+  <link rel="modulepreload" crossorigin href="/assets/field-Byd-702U.js">
+  <link rel="modulepreload" crossorigin href="/assets/palette-4j4QC37X.js">
+  <link rel="modulepreload" crossorigin href="/assets/pen-DmOxfjFV.js">
+  <link rel="modulepreload" crossorigin href="/assets/head-BchNi0R4.js">
+  <link rel="modulepreload" crossorigin href="/assets/face-C4OA20fW.js">
+  <link rel="modulepreload" crossorigin href="/assets/shell-DWEMSj-6.js">
+  <link rel="modulepreload" crossorigin href="/assets/afro-Cb9KCHLH.js">
+  <link rel="modulepreload" crossorigin href="/assets/hat-BsoxlaaB.js">
+  <link rel="modulepreload" crossorigin href="/assets/hair-nUioSJzB.js">
+  <link rel="modulepreload" crossorigin href="/assets/extras-BmqrM9B6.js">
+  <link rel="modulepreload" crossorigin href="/assets/paper-BSo6mD6L.js">
+  <link rel="modulepreload" crossorigin href="/assets/renderer-C3DGeLHd.js">
+  <link rel="modulepreload" crossorigin href="/assets/styles-zTSe_jfC.js">
+  <link rel="modulepreload" crossorigin href="/assets/grid-BvhlnsKk.js">
+  <link rel="modulepreload" crossorigin href="/assets/gaze-aE3KNnIw.js">
+  <link rel="modulepreload" crossorigin href="/assets/names-sz4Uk_9t.js">
+  <link rel="stylesheet" crossorigin href="/assets/style-BPvO-D6V.css">
+</head>
+<body class="press">
+
+<canvas id="sheet"></canvas>
+
+<nav class="bar" aria-label="Controls">
+  <button id="roll" type="button">New sheet</button>
+  <!-- The way into the docs. A book, not a word: set beside "New sheet",
+       a label reading "Docs" would speak just as loudly, and the docs are
+       not the sheet. They lie alongside it, for whoever goes looking. The
+       title names them - for the mouse, the screen reader and the
+       keyboard alike. -->
+  <a class="to-docs" href="/docs/" title="Docs">
+    <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor"
+         stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M8 4.3C7 3.5 5.6 3.1 3.7 3.1H2.2v9h1.5c1.9 0 3.3.4 4.3 1.2"/>
+      <path d="M8 4.3c1-.8 2.4-1.2 4.3-1.2h1.5v9h-1.5c-1.9 0-3.3.4-4.3 1.2"/>
+      <path d="M8 4.3v9"/>
+    </svg>
+    <span class="visually-hidden">Docs</span>
+  </a>
+</nav>
+
+<!-- The way into the workshop. It appears only in the close-up view:
+     there ONE head is meant, and only then does "edit this head" refer to
+     anything at all. On the sheet it would stand beside nine heads and
+     mean none of them.
+
+     A die, not a word - like the book beside it. It also sits in the same
+     place: in the close-up view the bar and its book are gone, so the
+     corner is free, and only ever one of the two is there. The title
+     names it, for the mouse, the screen reader and the keyboard alike. -->
+<a class="to-workshop" id="to-workshop" href="/werkstatt.html" title="Workshop">
+  <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor"
+       stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <rect x="2.6" y="2.6" width="10.8" height="10.8" rx="2.6"/>
+    <circle cx="5.5" cy="5.5" r="0.9" fill="currentColor" stroke="none"/>
+    <circle cx="8" cy="8" r="0.9" fill="currentColor" stroke="none"/>
+    <circle cx="10.5" cy="10.5" r="0.9" fill="currentColor" stroke="none"/>
+  </svg>
+  <span class="visually-hidden">Workshop</span>
+</a>
+
+</body>
+</html>
