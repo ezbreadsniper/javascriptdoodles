@@ -395,7 +395,7 @@ function $(e, r, o, s) {
         L,
         p.side,
         b,
-        { time: S, mouth: q, mouthAt: K, headphones: R, outline: j },
+        { time: S, headphones: R, outline: j },
       ),
     ),
     G(`infront`, `Mood`, () => drawMoodMarks(P, D, O, s.mood, b, S)),

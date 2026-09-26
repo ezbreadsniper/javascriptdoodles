@@ -117,7 +117,6 @@ var o = [
     `studs`,
     `hoops`,
     `flower`,
-    `lollipop`,
   ],
   g = (e) => e.map((e) => ({ id: e, weight: 1 })),
   _ = (e) => e.map(([e, t]) => ({ id: e, weight: t })),
@@ -468,7 +467,6 @@ var o = [
           [`studs`, 0.9],
           [`hoops`, 0.8],
           [`flower`, 0.7],
-          [`lollipop`, 0.6],
         ]),
         {
           plaster: {
@@ -488,12 +486,6 @@ var o = [
                 `flatcap`,
                 `bucketcap`,
               ],
-            },
-          },
-          lollipop: {
-            notWith: {
-              beard: [`walrus`, `handlebar`, `moustache`, `stubblemoustache`],
-              mouth: [`open`],
             },
           },
         },
@@ -517,7 +509,6 @@ var o = [
           lipring: {
             notWith: {
               beard: [`moustache`, `handlebar`, `walrus`, `stubblemoustache`],
-              extras: [`lollipop`],
             },
           },
         },

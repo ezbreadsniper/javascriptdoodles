@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
  * Dev-only: renders pages of this repo in headless Chromium and saves PNGs,
  * so a drawing change can be looked at without a desktop browser.
  *
- *   node dev/shoot.mjs out.png "/dev/preview.html?extras=lollipop&count=6&columns=3"
+ *   node dev/shoot.mjs out.png "/dev/preview.html?extras=flower&count=6&columns=3"
  *   node dev/shoot.mjs out.png "/?sheet=777" --size 1400x900 --wait 1500
  *   node dev/shoot.mjs out.png "/dev/preview.html?..." --clip 0,300,700,400
  *
