@@ -8,14 +8,20 @@ import { applyMood } from "/src/mood.js";
  *
  *   /dev/preview.html?from=1&count=15&beard=full&headwear=beanie
  *   &mood=love&moodAmount=1&yaw=0.2&columns=5&time=1.2
+ *   /dev/preview.html?seeds=12,40,777&collar=tie&columns=3
+ *
+ * `seeds` lists exact heads to draw instead of the `from`/`count` run.
  *
  * Any feature category id (eye, nose, mouth, hair, headwear, eyewear, beard,
- * brow, cheek, collar, mark, extras) can be forced by name.
+ * brow, cheek, collar, mark, extras, piercing) can be forced by name.
  */
 const FEATURES = ["eye", "nose", "mouth", "hair", "headwear", "eyewear", "beard", "brow", "cheek", "collar", "mark", "extras", "piercing"];
 const params = new URLSearchParams(location.search);
 const from = Number(params.get("from") ?? 1);
-const count = Number(params.get("count") ?? 15);
+const seeds = params.has("seeds")
+  ? params.get("seeds").split(",").map(Number).filter(Number.isFinite)
+  : null;
+const count = seeds ? seeds.length : Number(params.get("count") ?? 15);
 const columns = Number(params.get("columns") ?? 5);
 const forced = Object.fromEntries(FEATURES.filter((id) => params.has(id)).map((id) => [id, params.get(id)]));
 const mood = params.has("mood")
@@ -45,7 +51,7 @@ const cellWidth = width / columns;
 const cellHeight = height / rows;
 const mass = Math.min(cellWidth * 0.26, cellHeight * 0.22);
 for (let index = 0; index < count; index++) {
-  const base = generateCharacter(from + index);
+  const base = generateCharacter(seeds ? seeds[index] : from + index);
   const character = { ...base, features: { ...base.features, ...forced } };
   const state = applyMood(
     { pose, gazeX: 0, gazeY: 0, lids: 0, awake: 0, mouth: 0, time },
