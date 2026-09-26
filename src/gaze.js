@@ -10,6 +10,8 @@ function t(t, n) {
     gazeY: 0,
     awake: 0,
     blinksUntil: 0,
+    blinkLength: BLINK,
+    blinkAgainAt: 1 / 0,
     nextBlink: n + 0.5 + r() * 5,
     stiff: 7 + r() * 9,
     breathPhase: r() * 6.28,
@@ -29,6 +31,24 @@ var n = (e, t = 1) => (e < -t ? -t : e > t ? t : e),
   i = 3.4,
   a = 1.6,
   o = 0.05;
+
+/** Blink lengths in seconds: an ordinary blink, a double blink's second half, a slow one. */
+const BLINK = 0.14;
+const BLINK_AGAIN = 0.12;
+const BLINK_SLOW = 0.46;
+
+/**
+ * Starts a blink. `kind` is "single", "double" (two quick blinks) or "slow"
+ * (the contented blink of someone at ease); without one, it is picked at random.
+ */
+function blink(e, time, kind) {
+  let roll = e.random();
+  kind ??= roll < 0.16 ? `double` : roll < 0.26 ? `slow` : `single`;
+  e.blinkLength = kind === `slow` ? BLINK_SLOW : BLINK;
+  e.blinksUntil = time + e.blinkLength;
+  e.blinkAgainAt = kind === `double` ? e.blinksUntil + 0.09 + e.random() * 0.06 : 1 / 0;
+}
+
 function s(e, t, s, c, l, u = {}) {
   let d = Math.min(o, Math.max(0, c)),
     f = u.headRotation ?? 0.4,
@@ -53,6 +73,20 @@ function s(e, t, s, c, l, u = {}) {
       (g = Math.sin(t * 1.13) * 0.5),
       (_ = Math.sin(t * 0.77 + 2.2) * 0.3));
   }
+  // Ambient life can point the eyes, and partly the head, at a spot of its
+  // own (`u.look`: {x, y, head, weight}), blended over the pointer by weight.
+  let look = u.look;
+  if (look?.weight > 0) {
+    let w = look.weight,
+      head = look.head ?? 1,
+      x = (look.x - t.cx) / p,
+      y = (look.y - t.cy) / p;
+    ((m += (n(x) * f * head - m) * w),
+      (h += (n(y) * f * 0.6 * head - h) * w),
+      (g += (n(x * 2.1) - g) * w),
+      (_ += (n(y * 2.1) - _) * w),
+      (v *= 1 - w));
+  }
   let y = e.stiff,
     b = 2 * Math.sqrt(y);
   ((e.vYaw += (y * (m - e.yaw) - b * e.vYaw) * d),
@@ -63,8 +97,12 @@ function s(e, t, s, c, l, u = {}) {
   ((e.gazeX += (g - e.gazeX) * x),
     (e.gazeY += (_ - e.gazeY) * x),
     (e.awake += (v - e.awake) * (1 - Math.exp(-d * 7))),
+    l > e.blinkAgainAt &&
+      ((e.blinkLength = BLINK_AGAIN),
+      (e.blinksUntil = l + BLINK_AGAIN),
+      (e.blinkAgainAt = 1 / 0)),
     l > e.nextBlink &&
-      ((e.blinksUntil = l + 0.14),
+      (blink(e, l),
       (e.nextBlink = l + (e.awake > 0.5 ? 1.6 : 3) + e.random() * 4)),
     l > e.nextBabble &&
       ((e.babblesUntil = l + 1.2 + e.random() * 1.8),
@@ -83,8 +121,8 @@ function l(e, t, n) {
   let r = Math.sin(t * e.breathRate + e.breathPhase),
     i = 0;
   if (t < e.blinksUntil) {
-    let n = 1 - (e.blinksUntil - t) / 0.14;
-    i = Math.sin(n * Math.PI);
+    let n = 1 - (e.blinksUntil - t) / e.blinkLength;
+    i = e.blinkLength > BLINK ? Math.min(1, Math.sin(n * Math.PI) * 1.5) : Math.sin(n * Math.PI);
   }
   return {
     pose: {
@@ -100,4 +138,4 @@ function l(e, t, n) {
     time: t,
   };
 }
-export { l as a, c as i, a as n, s as o, t as r, r as s, i as t };
+export { l as a, c as i, a as n, s as o, t as r, r as s, i as t, blink };

@@ -6,6 +6,7 @@ import { applyMood, createMoodBoard } from "./mood.js";
 import { n, t as r } from "./styles.js";
 import { n as i, r as a, t as o } from "./grid.js";
 import { a as s, o as c, r as l } from "./gaze.js";
+import { createLife } from "./life.js";
 import { t as u } from "./names.js";
 var ee = {
     duration: 420,
@@ -99,6 +100,7 @@ var f = Math.min(window.devicePixelRatio || 1, 2),
   T = -1;
 var headCache = createHeadCache(),
   moodBoard = createMoodBoard(),
+  life = createLife(),
   paper = null;
 function paintPaper() {
   let canvas = paper?.canvas ?? document.createElement(`canvas`);
@@ -138,6 +140,7 @@ function M() {
   for (let e of S.keys()) n.has(e) || S.delete(e);
   for (let e of C.keys()) n.has(e) || C.delete(e);
   for (let e of b) S.has(e.seed) || S.set(e.seed, l(e.seed, A));
+  life.setCells(b.map((cell) => ({ seed: cell.seed, placement: G(cell, 0) })));
   (k.i >= b.length && R(), pe());
 }
 function pe() {
@@ -146,6 +149,7 @@ function pe() {
 }
 function N(e = Math.floor(Math.random() * 9e5) + 1) {
   (moodBoard.reset(),
+    life.reset(),
     w.splice(T + 1), w.push(e), (T = w.length - 1), S.clear(), v > 0 && M());
 }
 function P() {
@@ -213,11 +217,12 @@ function moodCells() {
       seed: cell.seed,
       placement: G(cell, index === k.i ? k.t : 0),
       index,
+      wakeful: life.wakeful(cell.seed),
     }))
     .filter(({ index }) => !focused || index === k.i);
 }
 function moodState(seed, state) {
-  return applyMood(state, moodBoard.moodFor(seed));
+  return applyMood(life.apply(seed, state), moodBoard.moodFor(seed));
 }
 function ge() {
   let e = 1;
@@ -290,9 +295,16 @@ function ye(e) {
     (A += t),
     !(!D.da && A - O > 12 && k.target === 0 && Math.floor(A * 30) % 2 == 0))
   ) {
+    life.update(A, {
+      pointer: D,
+      idleFor: A - O,
+      closeUp: k.target !== 0 || k.t > 0,
+      moodFor: (seed) => moodBoard.moodFor(seed),
+      gazes: S,
+    });
     for (let e of b) {
       let n = S.get(e.seed);
-      n && c(n, e, D, t, A, { headRotation: 0.34 });
+      n && c(n, e, D, t, A, { headRotation: 0.34, look: life.look(e.seed) });
     }
     (moodBoard.update(moodCells(), D, t, A, A - O),
       be(t),

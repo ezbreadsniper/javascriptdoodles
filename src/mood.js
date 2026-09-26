@@ -197,7 +197,7 @@ export function createMoodBoard() {
     }
   }
 
-  function react(entry, seed, reach, nearest, speed, dt, time, idleFor) {
+  function react(entry, seed, reach, nearest, speed, dt, time, idleFor, wakeful) {
     const hovering = reach < HOVER_REACH;
     entry.dwell = hovering ? entry.dwell + dt : Math.max(0, entry.dwell - dt * 3);
     const lingering = reach < CURIOUS_REACH && !hovering && speed < CURIOUS_SPEED;
@@ -222,13 +222,14 @@ export function createMoodBoard() {
     if (nearest && reach < HUM_REACH && !hovering && idleFor > HUM_AFTER) return trigger(entry, "hum", time);
     if (entry.nearSlow > CURIOUS_AFTER) return trigger(entry, "curious", time);
     if (time < entry.yawnStart + YAWN_LENGTH) return trigger(entry, "yawn", time);
-    if (idleFor > SLEEP_AFTER + (seed % 7) * SLEEP_STAGGER) trigger(entry, "sleepy", time);
+    if (!wakeful && idleFor > SLEEP_AFTER + (seed % 7) * SLEEP_STAGGER) trigger(entry, "sleepy", time);
   }
 
   return {
     /**
      * Advance every head's mood by one frame.
-     * `cells` carry `seed` and screen `placement` ({cx, cy, mass});
+     * `cells` carry `seed` and screen `placement` ({cx, cy, mass}), and
+     * `wakeful` for a head that stays up while the others doze;
      * `pointer` is the sheet's pointer ({x, y, da}); `idleFor` is seconds
      * since the pointer last moved.
      */
@@ -243,10 +244,10 @@ export function createMoodBoard() {
         pointer.da ? Math.hypot(pointer.x - placement.cx, pointer.y - placement.cy) / placement.mass : Infinity,
       );
       const closest = Math.min(...reaches);
-      cells.forEach(({ seed }, index) => {
+      cells.forEach(({ seed, wakeful }, index) => {
         const entry = entryFor(seed);
         if (wakingUp && entry.id === "sleepy") trigger(entry, "startled", time);
-        react(entry, seed, reaches[index], reaches[index] === closest, speed, dt, time, idleFor);
+        react(entry, seed, reaches[index], reaches[index] === closest, speed, dt, time, idleFor, wakeful);
         settle(entry, dt, time);
       });
     },
