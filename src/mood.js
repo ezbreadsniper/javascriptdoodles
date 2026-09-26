@@ -454,7 +454,7 @@ export function createMoodBoard() {
   }
 
   function react(cells, cell, entry, offset, reach, nearest, speed, dt, time, idleFor, spacing) {
-    const { seed } = cell;
+    const { seed, wakeful } = cell;
     const hovering = measure(entry, offset, reach, speed, dt, time, idleFor);
     const towardPointer = sideOf(offset.x, seedSide(seed));
     const playing = stillPlaying(entry, time);
@@ -532,13 +532,14 @@ export function createMoodBoard() {
     if (entry.nearSlow > CURIOUS_AFTER) return trigger(entry, "curious", time);
     if (hiccup(entry, time)) return;
     if (time < entry.yawnStart + YAWN_LENGTH) return trigger(entry, "yawn", time);
-    if (idleFor > SLEEP_AFTER + (seed % 7) * SLEEP_STAGGER) trigger(entry, "sleepy", time);
+    if (!wakeful && idleFor > SLEEP_AFTER + (seed % 7) * SLEEP_STAGGER) trigger(entry, "sleepy", time);
   }
 
   return {
     /**
      * Advance every head's mood by one frame.
-     * `cells` carry `seed` and screen `placement` ({cx, cy, mass});
+     * `cells` carry `seed` and screen `placement` ({cx, cy, mass}), and
+     * `wakeful` for a head that stays up while the others doze;
      * `pointer` is the sheet's pointer ({x, y, da}); `idleFor` is seconds
      * since the pointer last moved.
      */
