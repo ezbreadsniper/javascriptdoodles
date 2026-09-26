@@ -2,3 +2,4 @@ node_modules/
 .ruff_cache/
 _before_restore_*/
 
+.claude/worktrees/
