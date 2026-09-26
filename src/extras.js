@@ -193,7 +193,7 @@ function flowerSpot(ear, outline, glasses, eye, brow) {
     edge = reach(outline, y, side) ?? top.x,
     spot = { x: edge + side * BLOOM * 0.4, y },
     away = unit({ x: side * 0.6, y: -1 });
-  spot = add(spot, away, slideClear(spot, away, eye, BLOOM + (glasses ? 0.3 : 0.13)));
+  spot = add(spot, away, slideClear(spot, away, eye, BLOOM + (glasses ? 0.36 : 0.13)));
   return add(spot, away, slideClear(spot, away, brow, BLOOM + 0.06));
 }
 
