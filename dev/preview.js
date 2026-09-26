@@ -13,9 +13,9 @@ import { applyMood } from "/src/mood.js";
  * `seeds` lists exact heads to draw instead of the `from`/`count` run.
  *
  * Any feature category id (eye, nose, mouth, hair, headwear, eyewear, beard,
- * brow, cheek, collar, mark, extras, piercing) can be forced by name.
+ * brow, cheek, collar, mark, extras, piercing, necklace) can be forced by name.
  */
-const FEATURES = ["eye", "nose", "mouth", "hair", "headwear", "eyewear", "beard", "brow", "cheek", "collar", "mark", "extras", "piercing"];
+const FEATURES = ["eye", "nose", "mouth", "hair", "headwear", "eyewear", "beard", "brow", "cheek", "collar", "mark", "extras", "piercing", "necklace"];
 const params = new URLSearchParams(location.search);
 const from = Number(params.get("from") ?? 1);
 const seeds = params.has("seeds")

@@ -87,14 +87,6 @@ function roundBox(centre, rx, ry, power = 4, steps = 28) {
   return points;
 }
 
-function teardrop(centre, radius) {
-  return ring(centre, radius, 12).map((p) => {
-    const rise = centre.y - p.y;
-    if (rise <= 0) return p;
-    return { x: centre.x + (p.x - centre.x) * (1 - (rise / radius) * 0.7), y: centre.y - rise * 1.35 };
-  });
-}
-
 function bezier(a, b, c, d, steps = 14) {
   const points = [];
   for (let k = 0; k <= steps; k++) {
@@ -296,58 +288,6 @@ function scarf(kit) {
   };
 }
 
-function chain(kit) {
-  const { ry, palette, params } = kit;
-  const hem = kit.arc(-FRONT, FRONT);
-  const path = [];
-  for (let k = 0; k <= 48; k++) {
-    const t = -1.42 + (2.84 * k) / 48;
-    const hang = Math.cos(t) ** 2;
-    path.push(kit.at(t, ry * (0.05 - 0.13 * hang), -kit.radius * 0.34 * (1 - hang)));
-  }
-  const links = [];
-  let travelled = 0;
-  for (let k = 1; k < path.length; k++) {
-    const a = path[k - 1];
-    const b = path[k];
-    const d = Math.hypot(b.x - a.x, b.y - a.y);
-    travelled += d;
-    if (travelled < 0.034) continue;
-    travelled = 0;
-    links.push({ x: b.x, y: b.y, dx: (b.x - a.x) / d, dy: (b.y - a.y) / d });
-  }
-  const hasPendant = params.crooked > -0.02;
-  const drop = params.opening > 0.265;
-  return {
-    hem,
-    back: () => {},
-    front: (pen) => {
-      pen.stroke(hem, inked(kit, `collar`, 0.022, { wobble: 0.004 }));
-      for (const [k, l] of links.entries()) {
-        const along = k % 2 === 0 ? 0.021 : 0.015;
-        const across = k % 2 === 0 ? 0.012 : 0.003;
-        const oval = [];
-        for (let s = 0; s < 8; s++) {
-          const a = (TURN * s) / 8;
-          const u = Math.cos(a) * along;
-          const v = Math.sin(a) * across;
-          oval.push({ x: l.x + l.dx * u - l.dy * v, y: l.y + l.dy * u + l.dx * v });
-        }
-        pen.stroke(oval, inked(kit, `chain${k}`, 0.0075, { closed: !0, coverage: 0.9, singleLayer: !0 }));
-      }
-      if (!hasPendant) return;
-      const centre = path[24];
-      const size = Math.min(ry * 0.045, reach(kit, ry * -0.08, ry * 0.09) * 0.5);
-      const hang = { x: centre.x, y: centre.y + size * 1.25 };
-      const shape = drop ? teardrop(hang, size) : ring(hang, size, 12);
-      pen.stroke(ring({ x: centre.x, y: centre.y + size * 0.1 }, size * 0.28, 8), inked(kit, `pendant-bail`, 0.008, { closed: !0 }));
-      pen.surface(shape, { colour: palette.fabric, trace: `pendant`, wobble: 0.002 });
-      pen.stroke(shape, inked(kit, `pendant`, 0.013, { closed: !0 }));
-      pen.dot({ x: hang.x - size * 0.3, y: hang.y - size * 0.25 }, size * 0.18, palette.blank, { trace: `pendant-shine`, coverage: 0.8 });
-    },
-  };
-}
-
 function badge(pen, kit, { centre, wide, tall, colour }) {
   const top = centre.y - tall / 2;
   const left = centre.x - wide / 2;
@@ -531,7 +471,7 @@ function shirtTrim(id, kit, opening) {
   return { under, over: bowtie(kit, opening) };
 }
 
-const WORN = { hoodie, scarf, chain, lanyard };
+const WORN = { hoodie, scarf, lanyard };
 
 function wornCollar(id, kit) {
   return WORN[id]?.(kit) ?? null;

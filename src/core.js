@@ -100,10 +100,11 @@ var o = [
     `hoodie`,
     `bowtie`,
     `tie`,
-    `chain`,
     `scarf`,
     `lanyard`,
   ],
+  necklaceIds = [`none`, `chain`, `pearls`, `choker`, `beads`, `layered`, `cord`],
+  bareOrBusyNeck = [`none`, `tie`, `bowtie`, `scarf`, `lanyard`],
   p = [`none`, `undereyes`, `hatching`, `foreheadlines`, `cheekbones`],
   m = [`ring`, `wide`, `open`, `star`, `button`, `monolid`],
   h = [
@@ -399,10 +400,32 @@ var o = [
         [`hoodie`, 1],
         [`bowtie`, 0.6],
         [`tie`, 0.8],
-        [`chain`, 0.8],
         [`scarf`, 0.8],
         [`lanyard`, 0.6],
       ]),
+    },
+    {
+      id: `necklace`,
+      label: `Necklace`,
+      entries: v(
+        _([
+          [`none`, 9],
+          [`chain`, 0.8],
+          [`pearls`, 0.5],
+          [`choker`, 0.5],
+          [`beads`, 0.5],
+          [`layered`, 0.5],
+          [`cord`, 0.6],
+        ]),
+        {
+          chain: { notWith: { collar: bareOrBusyNeck } },
+          pearls: { notWith: { collar: bareOrBusyNeck } },
+          choker: { notWith: { collar: [`tie`, `bowtie`, `scarf`, `lanyard`, `knit`] } },
+          beads: { notWith: { collar: bareOrBusyNeck } },
+          layered: { notWith: { collar: bareOrBusyNeck } },
+          cord: { notWith: { collar: bareOrBusyNeck } },
+        },
+      ),
     },
     {
       id: `mark`,
@@ -652,7 +675,8 @@ function B(e) {
     O = n.n(),
     k = u(`extras`),
     A = { skinT: x, hairT: S, accentT: C, inkT: w, clothT: n.n() },
-    piercing = u(`piercing`);
+    piercing = u(`piercing`),
+    necklace = u(`necklace`);
   return {
     seed: e,
     head: i,
@@ -672,6 +696,7 @@ function B(e) {
       mark: D,
       extras: k,
       piercing,
+      necklace,
     },
     layout: r,
     asym: b,
@@ -692,6 +717,7 @@ var V = [`headShape`, `posture`, `proportions`, `colours`],
     `eyewear`,
     `beard`,
     `collar`,
+    `necklace`,
     `extras`,
     `piercing`,
   ],
@@ -890,4 +916,5 @@ export {
   s as w,
   d as x,
   u as y,
+  necklaceIds,
 };

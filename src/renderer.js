@@ -40,6 +40,7 @@ import { a as N, i as P, o as F } from "./hat.js";
 import { a as ie, i as ae, n as I, r as L, t as R } from "./hair.js";
 import { t as oe } from "./extras.js";
 import { drawPiercing } from "./piercings.js";
+import { drawNecklace } from "./necklaces.js";
 import { n as z, t as B } from "./paper.js";
 import { moodFeatures } from "./mood.js";
 import { drawMoodMarks } from "./moodlets.js";
@@ -247,6 +248,9 @@ function $(e, r, o, s) {
   if (
     (G(`neck`, `Neck and collar`, () =>
       f(P, D, j, r.features.collar, b, p.neckWidth, p.collar),
+    ),
+    G(`neck`, `Necklace`, () =>
+      drawNecklace(P, D, j, r.features.necklace, r, b, p.neckWidth, p.collar),
     ),
     G(`behind-the-head`, `Hair behind`, () =>
       ie(P, D, r, r.features.hair, p.hairShell, j, b),
