@@ -18,7 +18,7 @@ const tone = (l, c, h) => css(oklch(l, c, h));
 const DARK_SKIN = 0.3;
 const PEARL = { base: tone(0.95, 0.014, 85), shine: tone(0.995, 0.004, 90) };
 const CORD = tone(0.55, 0.08, 60);
-const TOOTH = tone(0.95, 0.03, 88);
+const TOOTH = tone(0.91, 0.045, 85);
 // Velvet: black, wine and teal. Black drops out on very dark skin, where it would vanish.
 const VELVET = [tone(0.27, 0.02, 280), tone(0.42, 0.14, 15), tone(0.44, 0.08, 205)];
 // Bead sets as [odd beads, front bead, even beads]: wood and amber, wood and turquoise, painted.
