@@ -16,6 +16,8 @@ const BLOOMS = [
 const LEAF = tone(0.64, 0.13, 140);
 const CANDY = [tone(0.66, 0.19, 22), tone(0.68, 0.17, 335), tone(0.72, 0.15, 255)];
 const EAR_SIZE = 0.13;
+/** `head.js` stops drawing an ear once it has turned this far away. */
+const EAR_GONE = -0.15;
 const EAR_ITEMS = new Set([`earring`, `studs`, `hoops`, `flower`]);
 const HATS = new Set([`hat`, `cap`, `beanie`, `backcap`, `flatcap`, `bucketcap`, `headphones`]);
 const MOUSTACHES = new Set([`moustache`, `handlebar`, `walrus`, `stubblemoustache`]);
@@ -83,145 +85,205 @@ function studs(pen, ears, metal, palette) {
   for (let [index, ear] of ears.entries()) {
     if (ear.nz < -0.1) continue;
     let at = ear.to(0, -0.08, 0.06);
-    pen.dot(at, 0.05, palette.ink, { trace: `stud-rim${index}`, coverage: 0.9, noHem: !0 });
-    pen.dot(at, 0.038, metal.base, { trace: `stud${index}`, noHem: !0 });
-    pen.dot(add(at, { x: -0.012, y: -0.013 }), 0.013, metal.shine, {
+    pen.dot(at, 0.058, palette.ink, { trace: `stud-rim${index}`, coverage: 0.9, noHem: !0 });
+    pen.dot(at, 0.044, metal.base, { trace: `stud${index}`, noHem: !0 });
+    pen.dot(add(at, { x: -0.014, y: -0.015 }), 0.015, metal.shine, {
       trace: `stud-shine${index}`,
       noHem: !0,
     });
   }
 }
 
-function hoops(pen, ears, metal, palette, time, glasses) {
+/**
+ * A hoop swinging from each lobe. On an ear turning away it hangs behind the
+ * head's outline, so it slips out of sight with the ear instead of popping.
+ */
+function hoops(pen, ears, metal, palette, time, glasses, outline) {
   let hang = glasses ? -0.122 : -0.1;
   for (let [index, ear] of ears.entries()) {
-    if (ear.nz < -0.1) continue;
+    if (ear.nz < EAR_GONE) continue;
     let sway = Math.sin(time * 1.7 + index * 2.1) * 0.07,
       down = { x: Math.sin(sway), y: Math.cos(sway) },
       across = turn(down),
       radius = 0.11,
       centre = add(ear.to(0, hang, 0.055), down, radius * 0.9),
       ring = loop(centre, across, down, radius * 0.8, radius, 22),
-      shine = loop(centre, across, down, radius * 0.8, radius, 6, 3.5, 4.3);
-    pen.stroke(ring, {
-      ...outlined(palette.ink, `hoop-ink${index}`, t * 1.45),
-      coverage: 0.9,
-      singleLayer: !0,
-    });
-    pen.stroke(ring, { ...outlined(metal.base, `hoop${index}`, t * 0.75), singleLayer: !0 });
-    pen.stroke(shine, {
-      trace: `hoop-shine${index}`,
-      w: t * 0.3,
-      wobble: 0.001,
-      colour: metal.shine,
-      coverage: 0.9,
-      singleLayer: !0,
-    });
+      shine = loop(centre, across, down, radius * 0.8, radius, 6, 3.5, 4.3),
+      draw = () => {
+        pen.stroke(ring, {
+          ...outlined(palette.ink, `hoop-ink${index}`, t * 1.45),
+          coverage: 0.9,
+          singleLayer: !0,
+        });
+        pen.stroke(ring, { ...outlined(metal.base, `hoop${index}`, t * 0.75), singleLayer: !0 });
+        pen.stroke(shine, {
+          trace: `hoop-shine${index}`,
+          w: t * 0.3,
+          wobble: 0.001,
+          colour: metal.shine,
+          coverage: 0.9,
+          singleLayer: !0,
+        });
+      };
+    ear.nz < 0 && outline ? outsideHead(pen, outline, draw) : draw();
   }
 }
 
-function flowerEar(ears, side) {
-  let preferred = side < 0 ? 0 : 1,
-    other = 1 - preferred;
-  return ears[preferred].nz < -0.1 ? [other, ears[other]] : [preferred, ears[preferred]];
-}
+const PETAL = 0.084;
+const PETAL_REACH = 0.105;
+const BLOOM = PETAL + PETAL_REACH;
 
 function bloom(pen, centre, up, out, colours, palette, spin) {
-  let leafDir = unit(add(up, out, -0.55)),
-    leafBase = add(centre, leafDir, 0.1),
+  let leafDir = unit(add(up, out, 1.1)),
+    leafBase = add(centre, leafDir, 0.11),
     leaf = [
       leafBase,
-      add(add(leafBase, leafDir, 0.07), turn(leafDir), 0.035),
-      add(leafBase, leafDir, 0.15),
-      add(add(leafBase, leafDir, 0.07), turn(leafDir), -0.035),
+      add(add(leafBase, leafDir, 0.08), turn(leafDir), 0.042),
+      add(leafBase, leafDir, 0.18),
+      add(add(leafBase, leafDir, 0.08), turn(leafDir), -0.042),
     ],
+    vein = [add(leafBase, leafDir, 0.02), add(leafBase, leafDir, 0.13)],
     petals = [],
-    heart = circle(centre, 0.044, 14),
+    heart = circle(centre, 0.05, 14),
     edge = (trace, w) => ({ ...outlined(palette.ink, trace, t * w), coverage: 0.9 });
   for (let i = 0; i < 5; i++) {
     let a = spin + (i / 5) * TAU;
-    petals.push(circle(add(centre, { x: Math.cos(a), y: Math.sin(a) }, 0.082), 0.064, 16));
+    petals.push(circle(add(centre, { x: Math.cos(a), y: Math.sin(a) }, PETAL_REACH), PETAL, 16));
   }
   pen.surface(leaf, fill(LEAF, `flower-leaf`));
-  pen.stroke(leaf, edge(`flower-leaf-edge`, 0.6));
+  pen.stroke(leaf, edge(`flower-leaf-edge`, 0.75));
+  pen.stroke(vein, { trace: `flower-vein`, w: t * 0.4, wobble: 0.002, colour: palette.ink, coverage: 0.6 });
   petals.forEach((petal, i) => pen.surface(petal, fill(colours.petal, `petal${i}`)));
-  petals.forEach((petal, i) => pen.stroke(petal, edge(`petal-edge${i}`, 0.7)));
+  petals.forEach((petal, i) => pen.stroke(petal, edge(`petal-edge${i}`, 0.85)));
   pen.surface(heart, fill(colours.heart, `flower-heart`));
-  pen.stroke(heart, edge(`flower-heart-edge`, 0.6));
+  pen.stroke(heart, edge(`flower-heart-edge`, 0.7));
 }
 
-function flowerSpot(ear, eye, glasses) {
-  let clearance = glasses ? 0.44 : 0.3,
-    spot = ear.to(0, 0.11, 0.1);
-  for (let step = 0; step <= 12; step++) {
-    spot = ear.to(0, (glasses ? 0.22 : 0.11) + step * 0.018, 0.1 + step * 0.01);
-    if (Math.hypot(spot.x - eye.x, spot.y - eye.y) > clearance) break;
-  }
-  return spot;
+/** How far the head outline reaches toward `side` around height `y`. */
+function reach(outline, y, side) {
+  let far = null;
+  for (let point of outline)
+    Math.abs(point.y - y) < 0.05 && (far === null || side * point.x > side * far) && (far = point.x);
+  return far;
 }
 
-function flower(pen, field, ears, side, character, palette, outline) {
+/**
+ * Where a flower tucked behind the ear shows: just above the ear, most of it
+ * past the head's silhouette. With glasses it rides higher, clear of the
+ * arm that rests on the ear.
+ */
+function flowerSpot(ear, outline, glasses) {
+  let side = ear.x >= 0 ? 1 : -1,
+    top = ear.to(0, EAR_SIZE * 0.8, 0),
+    y = top.y - BLOOM * (glasses ? 0.95 : 0.45),
+    edge = reach(outline, y, side) ?? top.x;
+  return { x: edge + side * BLOOM * 0.4, y };
+}
+
+/** Draws only where `area` (a closed path) overlaps the outside of the head. */
+function outsideHeadWithin(pen, outline, area, draw) {
+  let ctx = pen.ctx;
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(area[0].x, area[0].y);
+  for (let point of area) ctx.lineTo(point.x, point.y);
+  ctx.closePath();
+  ctx.clip();
+  outsideHead(pen, outline, draw);
+  ctx.restore();
+}
+
+/**
+ * A five-petal flower tucked behind one ear. It always sits behind the head's
+ * silhouette, so it peeks out the same way whichever way the head turns, and
+ * the ear is drawn back over it where they overlap.
+ */
+function flower(pen, ears, side, character, palette, outline) {
   if (!outline) return;
-  let [index, ear] = flowerEar(ears, side),
-    layout = character.layout,
-    eye = e((index === 0 ? -1 : 1) * layout.eyeU, layout.eyeV, field),
-    centre = flowerSpot(ear, eye, character.features.eyewear !== `none`),
+  let ear = ears[side < 0 ? 0 : 1],
+    centre = flowerSpot(ear, outline, character.features.eyewear !== `none`),
     colours = pickFrom(character, `flower`, BLOOMS),
     spin = seeded(character.seed, `flower-spin`).n() * TAU,
-    draw = () => {
-      bloom(pen, centre, unit(ear.ey), unit(ear.nrm), colours, palette, spin);
-      drawEar(pen, ear, EAR_SIZE, palette, index === 0 ? -1 : 1, outline);
-    };
-  ear.nz < 0 ? outsideHead(pen, outline, draw) : draw();
+    up = unit(ear.ey),
+    out = { x: side, y: 0 };
+  outsideHead(pen, outline, () => bloom(pen, centre, up, out, colours, palette, spin));
+  outsideHeadWithin(pen, outline, circle(centre, BLOOM * 1.4, 24), () =>
+    drawEar(pen, ear, EAR_SIZE, palette, side, outline),
+  );
 }
 
-function nearCorner(field, character, side) {
-  let v = character.layout.mouthV,
-    left = e(-0.3, v, field).nz,
-    right = e(0.3, v, field).nz;
-  return Math.abs(left - right) < 0.02 ? side : left > right ? -1 : 1;
+/** How far the jaw has dropped, in head units: 0 for a closed mouth. */
+function gape(mouth) {
+  if (mouth.state === `closed`) return 0;
+  let ys = mouth.outline.map(([, y]) => y);
+  return (Math.max(...ys) - Math.min(...ys)) * mouth.high * mouth.extend;
 }
 
-function swirlIn(centre, radius, turns, spin) {
+/** How far a ray from `from` runs before it leaves the head outline. */
+function exitDistance(from, dir, outline, limit) {
+  for (let d = 0; d <= limit; d += 0.01) if (!inside(add(from, dir, d), outline)) return d;
+  return limit;
+}
+
+/** A thick candy stripe winding out from the middle of the disc. */
+function swirl(centre, radius, turns, spin, start) {
   let points = [];
-  for (let i = 0; i <= 26; i++) {
-    let s = i / 26,
-      a = spin * s * TAU * turns,
-      r = radius * (0.1 + s * 0.72);
+  for (let i = 0; i <= 40; i++) {
+    let s = i / 40,
+      a = start + spin * s * TAU * turns,
+      r = radius * (0.08 + s * 0.8);
     points.push({ x: centre.x + Math.cos(a) * r, y: centre.y + Math.sin(a) * r });
   }
   return points;
 }
 
-function lollipop(pen, field, character, side, palette, scene) {
+/** How steeply the stick leaves the mouth, below level, in radians. */
+const STICK_TILT = 0.62;
+
+/**
+ * A swirl lollipop with its stick clamped in one corner of the mouth and the
+ * candy out past the jaw. The candy hangs from where the corner rests, so
+ * talking only pivots the stick in the lips; a wide-open mouth (startled,
+ * yawning, a loud word) lets the stick sag.
+ */
+function lollipop(pen, character, side, palette, scene) {
   let { mouth, mouthAt: frame, outline } = scene;
-  if (!mouth || !frame || !outline || mouth.state === `babbles` || frame.nz < 0.25) return;
+  if (!mouth || !frame || !outline || frame.nz < 0.25) return;
   if (MOUSTACHES.has(character.features.beard)) return;
-  let corner = nearCorner(field, character, side),
-    [cornerX, cornerY] = mouth.angle[corner < 0 ? 0 : 1],
-    x = cornerX * mouth.wide,
-    y = -cornerY * mouth.high * mouth.extend,
-    width = character.head.rx * 2,
-    centre = frame.to(x, y),
-    toward = frame.to(x + corner * 0.8, y - 0.56),
-    dir = unit({ x: toward.x - centre.x, y: toward.y - centre.y }),
-    length = width * 0.15;
-  while (length > width * 0.06 && !inside(add(centre, dir, length + 0.02), outline))
-    length *= 0.85;
-  let stick = [centre, add(centre, dir, length)],
-    disc = circle(centre, width * 0.07, 24),
+  let [cornerX, cornerY] = mouth.angle[side < 0 ? 0 : 1],
+    corner = frame.to(cornerX * mouth.wide, -cornerY * mouth.high * mouth.extend),
+    rest = frame.to(side * mouth.wide * 0.5, 0),
+    origin = frame.to(0, 0),
+    radius = Math.min(0.17, Math.max(0.14, character.head.rx * 0.21)),
+    sag = Math.min(1, Math.max(0, (gape(mouth) - 0.12) / 0.14)) * 0.5,
+    aim = frame.to(side * Math.cos(STICK_TILT + sag), -Math.sin(STICK_TILT + sag)),
+    out = unit({ x: aim.x - origin.x, y: aim.y - origin.y }),
+    centre = add(rest, out, exitDistance(rest, out, outline, 0.9) + radius * 0.55),
+    dir = unit({ x: centre.x - corner.x, y: centre.y - corner.y }),
+    stick = [add(corner, dir, -0.012), add(centre, dir, -radius * 0.4)],
+    disc = circle(centre, radius, 26),
+    candy = pickFrom(character, `candy`, CANDY),
+    start = seeded(character.seed, `lolly-spin`).n() * TAU,
     rod = { wobble: 0.002, singleLayer: !0 };
-  pen.stroke(stick, { ...rod, trace: `lolly-stick-ink`, w: t * 2.2, colour: palette.ink, pointed: 0.1 });
-  pen.stroke(stick, { ...rod, trace: `lolly-stick`, w: t * 1.05, colour: palette.blank, pointed: 0.05 });
-  pen.surface(disc, fill(pickFrom(character, `candy`, CANDY), `lolly`, { wobble: 0.003 }));
-  pen.stroke(swirlIn(centre, width * 0.07, 1.8, corner), {
+  pen.stroke(stick, { ...rod, trace: `lolly-stick-ink`, w: t * 1.9, colour: palette.ink, pointed: 0.2 });
+  pen.stroke(stick, { ...rod, trace: `lolly-stick`, w: t * 0.95, colour: palette.blank, pointed: 0.1 });
+  pen.surface(disc, fill(candy, `lolly`, { wobble: 0.003 }));
+  pen.stroke(swirl(centre, radius, 1.7, -side, start), {
     ...rod,
     trace: `lolly-swirl`,
-    w: t * 0.7,
+    w: radius * 0.2,
     colour: palette.blank,
-    coverage: 0.9,
+    pointed: 0.5,
+    coverage: 0.95,
   });
-  pen.stroke(disc, { ...outlined(palette.ink, `lolly-edge`, t * 0.85), coverage: 0.95 });
+  pen.stroke(disc, { ...outlined(palette.ink, `lolly-edge`, t * 1.05), coverage: 0.95 });
+  pen.stroke(loop(centre, { x: 1, y: 0 }, { x: 0, y: 1 }, radius * 0.72, radius * 0.72, 5, 3.7, 4.5), {
+    ...rod,
+    trace: `lolly-glint`,
+    w: t * 0.45,
+    colour: palette.blank,
+    pointed: 0.9,
+  });
 }
 
 function n(n, r, i, a, o, s, c, scene = {}) {
@@ -295,13 +357,13 @@ function n(n, r, i, a, o, s, c, scene = {}) {
       studs(n, o, metalFor(i, c), c);
       return;
     case `hoops`:
-      hoops(n, o, metalFor(i, c), c, scene.time ?? 0, i.features.eyewear !== `none`);
+      hoops(n, o, metalFor(i, c), c, scene.time ?? 0, i.features.eyewear !== `none`, scene.outline);
       return;
     case `flower`:
-      HATS.has(i.features.headwear) || flower(n, r, o, -s, i, c, scene.outline);
+      HATS.has(i.features.headwear) || flower(n, o, -s, i, c, scene.outline);
       return;
     case `lollipop`:
-      lollipop(n, r, i, s, c, scene);
+      lollipop(n, i, s, c, scene);
       return;
   }
 }
