@@ -5,12 +5,17 @@ import { d as oklch, o as lensColour, u as css } from "./palette.js";
 import { t as smoothPath } from "./pen.js";
 
 /**
- * Eyewear: glasses drawn in front of the face.
+ * Eyewear: glasses drawn over the face, under hair and headwear.
  *
- * A pair is built flat in head space, in the plane just in front of the eyes,
+ * A pair is built in head space, in the plane just in front of the eyes,
  * then turned with the head's pose and projected, so the frame foreshortens
  * as the head turns. Temples run from the frame's outer edge back to a point
  * above each ear and are left out when that ear faces away.
+ *
+ * `round` and `square` are the original upstream pair and are drawn exactly
+ * as before. Every other style has its own function below: it picks a frame
+ * material from the person's lens roll, fits its lenses to the face, and
+ * builds each lens from a handful of control points the pen smooths.
  *
  * Lens outlines are written in lens units: x points outward (towards the
  * temple on both sides), y points up, and 1 is one `unit` in head space.
@@ -88,7 +93,11 @@ function heartShape(size, steps = 32) {
   for (let step = 0; step < steps; step++) {
     let angle = (step / steps) * TAU,
       across = 16 * Math.sin(angle) ** 3,
-      up = 13 * Math.cos(angle) - 5 * Math.cos(2 * angle) - 2 * Math.cos(3 * angle) - Math.cos(4 * angle);
+      up =
+        13 * Math.cos(angle) -
+        5 * Math.cos(2 * angle) -
+        2 * Math.cos(3 * angle) -
+        Math.cos(4 * angle);
     points.push([(across / 16) * size, (up / 16) * size + 0.1]);
   }
   return points;
@@ -175,9 +184,13 @@ function seated(base, left, right) {
      * Returns the pair and the unit to draw with.
      */
     fit(unit, outer, inner, gap = 0.035) {
-      let edge = base.faceHalf * 0.95,
+      let edge = base.faceHalf * 0.92,
         eye = (right.x - left.x) / 2,
-        size = Math.min(unit, Math.max(unit * 0.8, (edge - eye) / outer), (edge - gap) / (outer + inner)),
+        size = Math.min(
+          unit,
+          Math.max(unit * 0.85, (edge - eye) / outer),
+          (edge - gap) / (outer + inner),
+        ),
         apart = Math.max(gap + inner * size, Math.min(eye, edge - outer * size));
       return [apart === eye ? this : this.seat({ apart }), size];
     },
@@ -280,8 +293,20 @@ function acetate(pen, material, outer, inner, palette, trace) {
 
 /** A wire line: ink with a thin metal core. */
 function wire(pen, points, metal, palette, trace, { closed = !1, w = 1 } = {}) {
-  let line = { wobble: 0.003, closed, singleLayer: !0, pointed: closed ? 0.75 : 0.3, square: closed };
-  pen.stroke(points, { ...line, trace: `${trace}-ink`, w: INK * 1.35 * w, colour: palette.ink, coverage: 0.95 });
+  let line = {
+    wobble: 0.003,
+    closed,
+    singleLayer: !0,
+    pointed: closed ? 0.75 : 0.3,
+    square: closed,
+  };
+  pen.stroke(points, {
+    ...line,
+    trace: `${trace}-ink`,
+    w: INK * 1.35 * w,
+    colour: palette.ink,
+    coverage: 0.95,
+  });
   pen.stroke(points, { ...line, trace: `${trace}-metal`, w: INK * 0.55 * w, colour: metal.base });
 }
 
@@ -291,11 +316,17 @@ function bar(pen, points, material, palette, trace, w = 1) {
   let line = { wobble: 0.003, singleLayer: !0, pointed: 0.2 };
   pen.stroke(points, { ...line, trace: `${trace}-ink`, w: INK * 1.3 * w, colour: palette.ink });
   material.base &&
-    pen.stroke(points, { ...line, trace: `${trace}-fill`, w: INK * 0.75 * w, colour: material.base });
+    pen.stroke(points, {
+      ...line,
+      trace: `${trace}-fill`,
+      w: INK * 0.75 * w,
+      colour: material.base,
+    });
 }
 
 function tint(pen, outline, colour, coverage, trace) {
-  coverage > 0.02 && pen.surface(outline, { colour, coverage, trace, wobble: 0.004, dry: !0, square: !0 });
+  coverage > 0.02 &&
+    pen.surface(outline, { colour, coverage, trace, wobble: 0.004, dry: !0, square: !0 });
 }
 
 /** A two-step gradient tint: pale over the whole lens, deeper above `split`. */
@@ -314,7 +345,14 @@ function gradientTint(pen, pair, side, lens, colour, trace, unit, split = 0) {
     unit,
   );
   clipped(pen, { inside: [lens] }, () =>
-    pen.surface(band, { colour, coverage: 0.3, trace: `${trace}-high`, wobble: 0.004, dry: !0, square: !0 }),
+    pen.surface(band, {
+      colour,
+      coverage: 0.3,
+      trace: `${trace}-high`,
+      wobble: 0.004,
+      dry: !0,
+      square: !0,
+    }),
   );
 }
 
@@ -323,14 +361,28 @@ function gradientTint(pen, pair, side, lens, colour, trace, unit, split = 0) {
  * way on both lenses as if lit from one window. `at` is the middle of the
  * long streak in lens units (x outward).
  */
-function glint(pen, pair, side, trace, unit, { at = [0.3, 0.14], size = 0.36, coverage = 0.85 } = {}) {
+function glint(
+  pen,
+  pair,
+  side,
+  trace,
+  unit,
+  { at = [0.3, 0.14], size = 0.36, coverage = 0.85 } = {},
+) {
   let streak = ([x, y], length, name) =>
     pen.stroke(
       [
         pair.at(side, x - side * 0.5 * length, y - 0.86 * length, unit),
         pair.at(side, x + side * 0.5 * length, y + 0.86 * length, unit),
       ],
-      { trace: `${trace}-${name}`, w: INK * 0.8, wobble: 0.002, colour: SHINE, coverage, pointed: 0.5 },
+      {
+        trace: `${trace}-${name}`,
+        w: INK * 0.8,
+        wobble: 0.002,
+        colour: SHINE,
+        coverage,
+        pointed: 0.5,
+      },
     );
   streak(at, size / 2, `glint`);
   streak([at[0] + side * 0.22, at[1] + 0.04], size / 4, `glint2`);
@@ -339,7 +391,14 @@ function glint(pen, pair, side, trace, unit, { at = [0.3, 0.14], size = 0.36, co
 function temples(pen, pair, anchor, material, palette, w = 1) {
   for (let [index, side] of [-1, 1].entries()) {
     if (!pair.showsTemple(side)) continue;
-    bar(pen, [pair.at(side, ...anchor), pair.ear(side)], material, palette, `temple${index}`, w * 0.8);
+    bar(
+      pen,
+      [pair.at(side, ...anchor), pair.ear(side)],
+      material,
+      palette,
+      `temple${index}`,
+      w * 0.8,
+    );
   }
 }
 
@@ -427,10 +486,10 @@ function classic(pen, pair, style, lens, palette) {
 function catEye(base, lens, palette, pen) {
   let material = pick(lens.finish, [
       [BLACK, 0.45],
-      [TORTOISE, 0.3],
-      [CHERRY, 0.25],
+      [CHERRY, 0.35],
+      [TORTOISE, 0.2],
     ]),
-    [fitted, unit] = base.fit(base.radius * 1.02, 1.42, 1.02),
+    [fitted, unit] = base.fit(base.radius * 1.02, 1.5, 1.02),
     pair = fitted.underBrows(0.6, unit, 0.3),
     innerShape = [
       [0.98, 0.34],
@@ -443,25 +502,29 @@ function catEye(base, lens, palette, pen) {
       [0.94, -0.1],
     ],
     outerShape = [
-      [1.42, 0.92],
-      [0.6, 0.74],
+      [1.5, 1.02],
+      [0.6, 0.76],
       [-0.4, 0.7],
       [-1.02, 0.34],
       [-0.96, -0.4],
       [-0.2, -0.74],
       [0.64, -0.64],
       [1.1, -0.14],
-      [1.16, 0.4],
+      [1.18, 0.42],
     ];
   for (let [index, side] of [-1, 1].entries()) {
     let inner = smooth(pair.outline(side, innerShape, unit)),
       outer = smooth(pair.outline(side, outerShape, unit));
     tint(pen, inner, lens.colour, lens.strength * 0.8, `lensTone${index}`);
     acetate(pen, material, outer, inner, palette, `cateye${index}`);
-    pen.dot(pair.at(side, 1.2, 0.72, unit), 0.016, SHINE, { trace: `rhinestone${index}`, coverage: 0.95, noHem: !0 });
+    pen.dot(pair.at(side, 1.28, 0.8, unit), 0.016, SHINE, {
+      trace: `rhinestone${index}`,
+      coverage: 0.95,
+      noHem: !0,
+    });
   }
   bridge(pen, pair, [-0.96, 0.3, unit], 0.12, material, palette, 0.9);
-  temples(pen, pair, [1.2, 0.6, unit], material, palette);
+  temples(pen, pair, [1.26, 0.66, unit], material, palette);
 }
 
 /**
@@ -493,7 +556,13 @@ function aviator(base, lens, palette, pen) {
     glint(pen, pair, side, `aviator${index}`, unit, { at: [0.5, 0.2], size: 0.28, coverage: 0.7 });
     wire(pen, rim, metal, palette, `aviator${index}`, { closed: !0 });
   }
-  wire(pen, [pair.at(-1, -0.66, 0.5, unit), pair.at(1, -0.66, 0.5, unit)], metal, palette, `topbar`);
+  wire(
+    pen,
+    [pair.at(-1, -0.66, 0.5, unit), pair.at(1, -0.66, 0.5, unit)],
+    metal,
+    palette,
+    `topbar`,
+  );
   bridge(pen, pair, [-0.88, 0.12, unit], 0.12, metal, palette);
   temples(pen, pair, [0.98, 0.5, unit], metal, palette);
 }
@@ -504,25 +573,27 @@ function aviator(base, lens, palette, pen) {
  * sits under the brows, never on them, so it can't read as a second pair.
  */
 function browline(base, lens, palette, pen) {
-  let top = lens.finish < 0.6 ? BLACK : TORTOISE,
+  let top = lens.finish < 0.7 ? BLACK : TORTOISE,
     metal = lens.gradient < 0.65 ? SILVER : GOLD,
     [fitted, unit] = base.fit(base.radius * 0.96, 1.14, 1.04),
-    pair = fitted.underBrows(0.74, unit, 0.45),
+    // The bar keeps a real thickness however small the lenses get.
+    bar = 0.56 + Math.max(0.22, 0.05 / unit),
+    pair = fitted.underBrows(bar, unit, 0.45),
     shape = [
-      [1.0, 0.24],
-      [0.55, 0.52],
-      [-0.5, 0.52],
-      [-0.92, 0.26],
-      [-0.9, -0.26],
-      [-0.45, -0.58],
-      [0.5, -0.58],
-      [0.95, -0.26],
+      [1.0, 0.26],
+      [0.55, 0.56],
+      [-0.5, 0.56],
+      [-0.92, 0.28],
+      [-0.9, -0.3],
+      [-0.45, -0.66],
+      [0.5, -0.66],
+      [0.95, -0.3],
     ],
     barShape = [
-      [1.12, 0.42],
-      [0.62, 0.74],
-      [-0.55, 0.7],
-      [-1.02, 0.42],
+      [1.12, bar - 0.32],
+      [0.62, bar],
+      [-0.55, bar - 0.04],
+      [-1.02, bar - 0.32],
       [-1.0, 0.0],
       [1.08, 0.0],
     ],
@@ -540,7 +611,11 @@ function browline(base, lens, palette, pen) {
       wire(pen, rim, metal, palette, `browwire${index}`, { closed: !0 }),
     );
     acetate(pen, top, outer, rim, palette, `browbar${index}`);
-    pen.dot(pair.at(side, 0.84, 0.44, unit), 0.014, metal.base, { trace: `rivet${index}`, coverage: 0.95, noHem: !0 });
+    pen.dot(pair.at(side, 0.84, 0.44, unit), 0.014, metal.base, {
+      trace: `rivet${index}`,
+      coverage: 0.95,
+      noHem: !0,
+    });
   }
   bridge(pen, pair, [-0.92, 0.16, unit], 0.14, metal, palette);
   temples(pen, pair, [1.1, 0.4, unit], top, palette);
@@ -581,7 +656,9 @@ function shades(base, lens, palette, pen, scene) {
     tint(pen, inner, SMOKE, 0.93, `shadeTone${index}`);
     scene.eye === `heart`
       ? lovestruck(pen, pair, side, index, unit)
-      : glint(pen, pair, side, `shade${index}`, unit, { at: [0.3, 0.1] });
+      : scene.eye === `spiral`
+        ? dizzy(pen, pair, side, index, unit)
+        : glint(pen, pair, side, `shade${index}`, unit, { at: [0.3, 0.1] });
     acetate(pen, material, outer, inner, palette, `shades${index}`);
   }
   bridge(pen, pair, [-0.9, 0.28, unit], 0.08, material, palette, 1.2);
@@ -590,8 +667,36 @@ function shades(base, lens, palette, pen, scene) {
 
 /** Behind dark lenses a lovestruck gaze shows as a small heart on each lens. */
 function lovestruck(pen, pair, side, index, unit) {
-  let heart = pair.outline(side, heartShape(0.36, 26).map(([x, y]) => [x * side, y - 0.08]), unit);
-  pen.surface(heart, { colour: HEART_RED, trace: `shadeHeart${index}`, wobble: 0.003, coverage: 0.95, dry: !0 });
+  let heart = pair.outline(
+    side,
+    heartShape(0.36, 26).map(([x, y]) => [x * side, y - 0.08]),
+    unit,
+  );
+  pen.surface(heart, {
+    colour: HEART_RED,
+    trace: `shadeHeart${index}`,
+    wobble: 0.003,
+    coverage: 0.95,
+    dry: !0,
+  });
+}
+
+/** A dizzy gaze swims up through dark lenses as a pale spiral. */
+function dizzy(pen, pair, side, index, unit) {
+  let coil = [];
+  for (let step = 0; step <= 30; step++) {
+    let along = step / 30,
+      angle = along * Math.PI * 4.4 * side,
+      radius = 0.04 + along * 0.34;
+    coil.push(pair.at(side, Math.cos(angle) * radius, Math.sin(angle) * radius - 0.02, unit));
+  }
+  pen.stroke(coil, {
+    trace: `shadeSpiral${index}`,
+    w: INK * 0.75,
+    wobble: 0.003,
+    colour: SHINE,
+    coverage: 0.8,
+  });
 }
 
 /**
@@ -616,7 +721,10 @@ function readers(base, lens, palette, pen) {
       [0.3, drop - 0.78],
       [0.82, drop - 0.5],
     ],
-    outerShape = innerShape.map(([x, y], index) => [x * 1.14, index < 4 ? y + 0.12 : (y - drop) * 1.2 + drop]);
+    outerShape = innerShape.map(([x, y], index) => [
+      x * 1.14,
+      index < 4 ? y + 0.12 : (y - drop) * 1.2 + drop,
+    ]);
   for (let [index, side] of [-1, 1].entries()) {
     let inner = smooth(pair.outline(side, innerShape, unit)),
       outer = smooth(pair.outline(side, outerShape, unit));
@@ -676,7 +784,11 @@ function hearts(base, lens, palette, pen) {
     let inner = smooth(pair.outline(side, heartShape(0.86), unit)),
       outer = smooth(pair.outline(side, heartShape(1.04), unit));
     tint(pen, inner, ROSE_TINT, 0.45, `heartTint${index}`);
-    glint(pen, pair, side, `heart${index}`, unit, { at: [0.3 * side, 0.36], size: 0.3, coverage: 0.8 });
+    glint(pen, pair, side, `heart${index}`, unit, {
+      at: [0.3 * side, 0.36],
+      size: 0.3,
+      coverage: 0.8,
+    });
     acetate(pen, material, outer, inner, palette, `hearts${index}`);
   }
   bridge(pen, pair, [-0.92, 0.5, unit], 0.06, material, palette);
