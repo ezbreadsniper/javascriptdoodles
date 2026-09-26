@@ -14,6 +14,7 @@ const BLOOMS = [
   { petal: tone(0.75, 0.15, 355), heart: tone(0.87, 0.15, 92) },
 ];
 const LEAF = tone(0.64, 0.13, 140);
+const STEM = tone(0.56, 0.11, 140);
 const CANDY = [tone(0.62, 0.2, 12), tone(0.68, 0.18, 340), tone(0.68, 0.15, 250)];
 const EAR_SIZE = 0.13;
 /** `head.js` stops drawing an ear once it has turned this far away. */
@@ -66,6 +67,21 @@ function outsideHead(pen, outline, draw) {
   for (let point of outline) ctx.lineTo(point.x, point.y);
   ctx.closePath();
   ctx.clip(`evenodd`);
+  draw();
+  ctx.restore();
+}
+
+/** Draws only inside `areas` (closed paths; where any of them covers). */
+function within(pen, areas, draw) {
+  let ctx = pen.ctx;
+  ctx.save();
+  ctx.beginPath();
+  for (let area of areas) {
+    ctx.moveTo(area[0].x, area[0].y);
+    for (let point of area) ctx.lineTo(point.x, point.y);
+    ctx.closePath();
+  }
+  ctx.clip();
   draw();
   ctx.restore();
 }
@@ -156,48 +172,63 @@ function reach(outline, y, side) {
   return far;
 }
 
+/** How far to slide from `from` along `dir` (a unit vector) to stand `clear` off `point`. */
+function slideClear(from, dir, point, clear) {
+  let w = { x: from.x - point.x, y: from.y - point.y },
+    along = w.x * dir.x + w.y * dir.y,
+    room = along * along - (w.x * w.x + w.y * w.y) + clear * clear;
+  return room > 0 ? Math.max(0, -along + Math.sqrt(room)) : 0;
+}
+
 /**
  * Where a flower tucked behind the ear shows: just above the ear, most of it
- * past the head's silhouette. With glasses it rides higher, clear of the
- * arm that rests on the ear.
+ * past the head's silhouette. With glasses it rides higher, clear of the arm
+ * that rests on the ear, and on a head whose eye sits near the edge it slides
+ * up and out until it clears the eye and brow.
  */
-function flowerSpot(ear, outline, glasses) {
+function flowerSpot(ear, outline, glasses, eye, brow) {
   let side = ear.x >= 0 ? 1 : -1,
     top = ear.to(0, EAR_SIZE * 0.8, 0),
     y = top.y - BLOOM * (glasses ? 0.95 : 0.45),
-    edge = reach(outline, y, side) ?? top.x;
-  return { x: edge + side * BLOOM * 0.4, y };
+    edge = reach(outline, y, side) ?? top.x,
+    spot = { x: edge + side * BLOOM * 0.4, y },
+    away = unit({ x: side * 0.6, y: -1 });
+  spot = add(spot, away, slideClear(spot, away, eye, BLOOM + (glasses ? 0.3 : 0.13)));
+  return add(spot, away, slideClear(spot, away, brow, BLOOM + 0.06));
 }
 
-/** Draws only where `area` (a closed path) overlaps the outside of the head. */
-function outsideHeadWithin(pen, outline, area, draw) {
-  let ctx = pen.ctx;
-  ctx.save();
-  ctx.beginPath();
-  ctx.moveTo(area[0].x, area[0].y);
-  for (let point of area) ctx.lineTo(point.x, point.y);
-  ctx.closePath();
-  ctx.clip();
-  outsideHead(pen, outline, draw);
-  ctx.restore();
+/** The flower's stem, bowing a little on its way down to tuck in behind the ear. */
+function stem(pen, from, to, out, palette) {
+  let bow = add({ x: (from.x + to.x) / 2, y: (from.y + to.y) / 2 }, out, 0.025),
+    line = [from, bow, to],
+    rod = { wobble: 0.002, singleLayer: !0, pointed: 0.2 };
+  pen.stroke(line, { ...rod, trace: `flower-stem-ink`, w: t * 1.7, colour: palette.ink, coverage: 0.9 });
+  pen.stroke(line, { ...rod, trace: `flower-stem`, w: t * 0.8, colour: STEM });
 }
 
 /**
  * A five-petal flower tucked behind one ear. It always sits behind the head's
- * silhouette, so it peeks out the same way whichever way the head turns, and
- * the ear is drawn back over it where they overlap.
+ * silhouette, so it peeks out the same way whichever way the head turns; its
+ * stem runs down behind the ear, which is drawn back over both.
  */
-function flower(pen, ears, side, character, palette, outline) {
+function flower(pen, field, ears, side, character, palette, outline) {
   if (!outline) return;
   let ear = ears[side < 0 ? 0 : 1],
-    centre = flowerSpot(ear, outline, character.features.eyewear !== `none`),
+    { eyeU, eyeV, browV } = character.layout,
+    eye = e(side * eyeU, eyeV, field),
+    brow = e(side * eyeU, browV, field),
+    centre = flowerSpot(ear, outline, character.features.eyewear !== `none`, eye, brow),
+    tuck = ear.to(0, 0, EAR_SIZE * 0.3),
     colours = pickFrom(character, `flower`, BLOOMS),
     spin = seeded(character.seed, `flower-spin`).n() * TAU,
     up = unit(ear.ey),
     out = { x: side, y: 0 };
-  outsideHead(pen, outline, () => bloom(pen, centre, up, out, colours, palette, spin));
-  outsideHeadWithin(pen, outline, circle(centre, BLOOM * 1.4, 24), () =>
-    drawEar(pen, ear, EAR_SIZE, palette, side, outline),
+  outsideHead(pen, outline, () => {
+    stem(pen, centre, tuck, out, palette);
+    bloom(pen, centre, up, out, colours, palette, spin);
+  });
+  within(pen, [circle(centre, BLOOM * 1.4, 24), circle(tuck, EAR_SIZE * 1.3, 16)], () =>
+    outsideHead(pen, outline, () => drawEar(pen, ear, EAR_SIZE, palette, side, outline)),
   );
 }
 
@@ -223,18 +254,6 @@ function headShade(pen, field, palette) {
   return shade;
 }
 
-function within(pen, area, draw) {
-  let ctx = pen.ctx;
-  ctx.save();
-  ctx.beginPath();
-  ctx.moveTo(area[0].x, area[0].y);
-  for (let point of area) ctx.lineTo(point.x, point.y);
-  ctx.closePath();
-  ctx.clip();
-  draw();
-  ctx.restore();
-}
-
 /**
  * The cheek puffed out by the candy ball. Where the cheek is on the
  * silhouette the bump pushes the outline out: skin over the old contour and
@@ -250,7 +269,7 @@ function puffedCheek(pen, field, centre, radius, outward, palette, outline) {
     pen.surface(bump, fill(palette.skin, `puff`));
     pen.surface(bump, fill(shade, `puff`));
   });
-  within(pen, bump, () => {
+  within(pen, [bump], () => {
     pen.stroke(outline, { ...cover, colour: palette.skin });
     pen.stroke(outline, { ...cover, colour: shade });
   });
@@ -375,7 +394,7 @@ function n(n, r, i, a, o, s, c, scene = {}) {
       hoops(n, o, metalFor(i, c), c, scene.time ?? 0, i.features.eyewear !== `none`, scene.outline);
       return;
     case `flower`:
-      HATS.has(i.features.headwear) || flower(n, o, -s, i, c, scene.outline);
+      HATS.has(i.features.headwear) || flower(n, r, o, -s, i, c, scene.outline);
       return;
     case `lollipop`:
       lollipop(n, r, i, s, c, scene);
