@@ -341,9 +341,16 @@ var o = [
       id: `eyewear`,
       label: `Eyewear`,
       entries: _([
-        [`none`, 8],
-        [`round`, 1.4],
-        [`square`, 1],
+        [`none`, 11],
+        [`round`, 1.1],
+        [`square`, 0.8],
+        [`cateye`, 0.4],
+        [`aviator`, 0.35],
+        [`browline`, 0.35],
+        [`shades`, 0.35],
+        [`readers`, 0.3],
+        [`seventies`, 0.3],
+        [`hearts`, 0.1],
       ]),
     },
     {
@@ -458,6 +465,9 @@ var o = [
           [`lollipop`, 0.6],
         ]),
         {
+          plaster: {
+            notWith: { eyewear: [`aviator`, `shades`, `readers`, `seventies`, `hearts`] },
+          },
           studs: { notWith: { headwear: [`headphones`] } },
           hoops: { notWith: { headwear: [`headphones`] } },
           flower: {

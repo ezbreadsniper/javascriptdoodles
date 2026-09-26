@@ -57,6 +57,7 @@ var V = { top: 1.3, side: 1.3 },
     `nose`,
     `near-eye`,
     `mouth`,
+    `eyewear`,
     `hairstyle`,
     `on-top`,
     `star-eyes`,
@@ -397,8 +398,11 @@ function $(e, r, o, s) {
       ),
     ),
     G(`infront`, `Mood`, () => drawMoodMarks(P, D, O, s.mood, b, S)),
-    G(`infront`, `Eyewear`, () =>
-      te(P, D, O, z, B, I.eye, face.eyewear, p.lens, b),
+    G(`eyewear`, `Eyewear`, () =>
+      te(P, D, O, z, B, I.eye, face.eyewear, p.lens, b, {
+        eye: face.eye,
+        brow: r.features.brow,
+      }),
     ),
     se(U)
   );
