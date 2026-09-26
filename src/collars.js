@@ -17,8 +17,14 @@ function reach(kit, from, want, least = 0) {
   const start = kit.at(0, from).y;
   const step = (kit.at(0, from - 0.1).y - start) / 0.1;
   const room = step > 1e-3 ? (CLEARANCE - start) / step : want;
-  const hard = step > 1e-3 ? (FLOOR - start) / step : want;
-  return Math.min(hard, Math.max(least, Math.min(want, room)));
+  return Math.max(least, Math.min(want, room));
+}
+
+/** Like `reach`, but the hard limit just above the name label. */
+function reachFloor(kit, from, want) {
+  const start = kit.at(0, from).y;
+  const step = (kit.at(0, from - 0.1).y - start) / 0.1;
+  return step > 1e-3 ? Math.min(want, (FLOOR - start) / step) : want;
 }
 
 function measure(kit) {
@@ -115,8 +121,12 @@ function between(a, b, v) {
  * own seeded params so a garment keeps its colour through every redraw.
  */
 function roll(params, salt = 0) {
-  const x = Math.sin(params.fit * 131.7 + params.crooked * 977.3 + params.opening * 53.1 + salt * 17.9) * 43758.5453;
-  return x - Math.floor(x);
+  let hash = Math.imul(2166136261 ^ (salt * 2654435761), 16777619);
+  for (const value of [params.fit, params.crooked, params.opening, params.deep, params.point]) {
+    hash = Math.imul(hash ^ Math.round(value * 1e7), 16777619);
+    hash ^= hash >>> 15;
+  }
+  return (hash >>> 0) / 4294967296;
 }
 
 /** One colour from a weighted list of `[lightness, chroma, hue, weight]`. */
@@ -551,7 +561,7 @@ function tie(kit, { depth }) {
   const knotTop = onBody(kit, 0, 0.004, 0.01);
   const knotR = -Math.min(neck * 0.42, depth * 1.1);
   const knotLow = onBody(kit, 0, knotR, 0.01);
-  const hang = reach(kit, -depth * 1.15, Math.max(tall * 1.3, 0.16), 0.08);
+  const hang = reachFloor(kit, -depth * 1.15, reach(kit, -depth * 1.15, Math.max(tall * 1.3, 0.16), 0.08));
   const tipR = -depth * 1.15 - hang;
   const centreAt = (v) => onBody(kit, 0, knotR + neck * 0.08 + (tipR - knotR - neck * 0.08) * v, 0.01);
   const width = (v) => neck * (0.15 + 0.125 * Math.min(1, v / 0.85));
@@ -597,18 +607,17 @@ function tie(kit, { depth }) {
 }
 
 /**
- * Bow tie: two flared wings pinched into a small knot, a fold line on each
- * wing, and now and then white polka dots.
+ * Bow tie: two flared wings pinched into a small knot and a fold line on
+ * each wing, in a solid silk (prints are left to the camp shirt).
  */
 function bowtie(kit, { depth }) {
-  const { palette, params } = kit;
+  const { palette } = kit;
   const { neck } = measure(kit);
   const centre = onBody(kit, 0, -depth * 0.28, 0.012);
   const wide = neck * 0.78;
   const high = wide * 0.36;
   const colour = palette.garment;
   const deep = toneCss(toneOf(colour), -0.12);
-  const dotted = roll(params, 5) < 0.35;
   const at = (u, v) => ({ x: centre.x + u * wide, y: centre.y + v * high });
   const wing = (side) => {
     const points = [at(side * 0.14, -0.38), at(side * 0.6, -0.8), at(side * 0.97, -1)];
@@ -624,9 +633,6 @@ function bowtie(kit, { depth }) {
     for (const side of [-1, 1]) {
       const shape = wing(side);
       pen.surface(shape, { colour, trace: `bow${side}`, wobble: 0.002 });
-      if (dotted)
-        for (const [k, [u, v]] of [[0.42, -0.3], [0.7, 0.35], [0.8, -0.55], [0.5, 0.45]].entries())
-          pen.dot(at(side * u, v), 0.011, palette.blank, { trace: `bow-dot${side}${k}`, noHem: !0 });
       pen.stroke([...shape, shape[0]], inked(kit, `bow${side}`, 0.019));
       pen.stroke(
         [at(side * 0.2, 0.05), at(side * 0.55, 0.3)],
@@ -789,9 +795,10 @@ function hawaiian(kit) {
   const pop = toneCss(popTone);
   const { base } = measure(kit);
   // A camp collar lies flat and wide over the shoulders, only a short V deep.
-  const drop = Math.min(Math.max(0.08, room * 0.7), 0.19, Math.max(0.04, FLOOR - base.y));
+  const drop = Math.min(Math.max(0.12, room * 0.8), 0.22, Math.max(0.04, FLOOR - base.y));
   const wide = shoulders(kit, 1.35);
   const neck = kit.radius * 0.75;
+  const stand = 0.05;
   const at = (u, r) => chest(kit, u, r, 4);
   const vee = [at(-neck, 0.012), at(0, -drop), at(neck, 0.012)];
   const hem = [...kit.arc(-FRONT, -0.75, 0, 0, 8), kit.at(0, -drop * 0.98), ...kit.arc(0.75, FRONT, 0, 0, 8)];
@@ -816,9 +823,10 @@ function hawaiian(kit) {
     }
   return {
     hem,
+    // The collar stands up round the back of the neck before it falls open.
     back: (pen) => {
-      kit.fill(pen, [...kit.arc(-1.5708, -4.7124, 0, 0, 20), ...kit.arc(1.5708, -1.5708, -drop * 0.22, 0, 20)], groundDeep, `collar-base`);
-      pen.stroke(kit.arc(1.74, 4.5432, 0, 0, 14), inked(kit, `collar-back`, 0.02, { coverage: 0.8 }));
+      kit.fill(pen, [...kit.arc(-1.5708, -4.7124, stand, 0, 20), ...kit.arc(1.5708, -1.5708, -drop * 0.22, 0, 20)], groundDeep, `collar-base`);
+      pen.stroke(kit.arc(1.74, 4.5432, stand, 0, 14), inked(kit, `collar-back`, 0.02, { coverage: 0.85 }));
     },
     front: (pen) => {
       pen.surface(vee, { colour: palette.skin, dry: !0 });
