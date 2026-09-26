@@ -230,6 +230,7 @@ function $(e, r, o, s) {
       lids: s.lids ?? 0,
       awake: x,
       time: S,
+      wink: s.wink ?? 0,
     },
     j = n(p.skull, D.m, { bins: 108 });
   if (j.length < 8) return [];

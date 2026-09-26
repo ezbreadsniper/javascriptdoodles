@@ -8,6 +8,7 @@ import { applyMood } from "/src/mood.js";
  *
  *   /dev/preview.html?from=1&count=15&beard=full&headwear=beanie
  *   &mood=love&moodAmount=1&yaw=0.2&columns=5&time=1.2
+ *   &mood=sneeze&moodPhase=0.3&moodSide=-1   (a one-shot mood part-way through)
  *   /dev/preview.html?seeds=12,40,777&collar=tie&columns=3
  *
  * `seeds` lists exact heads to draw instead of the `from`/`count` run.
@@ -25,7 +26,14 @@ const count = seeds ? seeds.length : Number(params.get("count") ?? 15);
 const columns = Number(params.get("columns") ?? 5);
 const forced = Object.fromEntries(FEATURES.filter((id) => params.has(id)).map((id) => [id, params.get(id)]));
 const mood = params.has("mood")
-  ? { id: params.get("mood"), amount: Number(params.get("moodAmount") ?? 1), side: 1 }
+  ? {
+      id: params.get("mood"),
+      amount: Number(params.get("moodAmount") ?? 1),
+      side: Number(params.get("moodSide") ?? 1),
+      ...(params.has("moodPhase")
+        ? { phase: Number(params.get("moodPhase")), since: Number(params.get("moodPhase")) * 0.5 }
+        : {}),
+    }
   : null;
 const time = Number(params.get("time") ?? 0);
 const pose = {
