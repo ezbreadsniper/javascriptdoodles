@@ -474,6 +474,7 @@ var o = [
           plaster: {
             notWith: { eyewear: [`aviator`, `shades`, `readers`, `seventies`, `hearts`] },
           },
+          earring: { notWith: { headwear: [`headphones`] } },
           studs: { notWith: { headwear: [`headphones`] } },
           hoops: { notWith: { headwear: [`headphones`] } },
           flower: {
@@ -505,7 +506,7 @@ var o = [
         _([
           [`none`, 8],
           [`nosering`, 1.6],
-          [`lipring`, 1.4],
+          [`lipring`, 0.4],
         ]),
         {
           nosering: {
