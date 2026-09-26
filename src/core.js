@@ -435,6 +435,7 @@ var o = [
           [`lollipop`, 0.6],
         ]),
         {
+          earring: { notWith: { headwear: [`headphones`] } },
           studs: { notWith: { headwear: [`headphones`] } },
           hoops: { notWith: { headwear: [`headphones`] } },
           flower: {
