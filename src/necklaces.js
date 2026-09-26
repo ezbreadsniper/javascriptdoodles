@@ -196,7 +196,7 @@ function chain(pen, frame, look) {
       const v = Math.sin(a) * across;
       oval.push({ x: l.x + l.dx * u - l.dy * v, y: l.y + l.dy * u + l.dx * v });
     }
-    pen.stroke(oval, inked(palette, `chain${k}`, 0.0075, { closed: !0, coverage: 0.9, singleLayer: !0 }));
+    pen.stroke(oval, inked(palette, `chain${k}`, 0.0095, { closed: !0, coverage: 0.9, singleLayer: !0 }));
   }
   if (params.crooked <= -0.02) return;
   const centre = path[24];
