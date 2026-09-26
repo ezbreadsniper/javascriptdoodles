@@ -16,6 +16,8 @@ const LIDS_EPSILON = 0.02;
 const AWAKE_EPSILON = 0.008;
 const MOUTH_EPSILON = 0.02;
 const MOOD_EPSILON = 0.01;
+/** One-shot moods (a sneeze, a wink, a hiccup) animate along their phase. */
+const PHASE_EPSILON = 0.02;
 const REGION_PAD = 0.1;
 /**
  * Moving heads are drawn "on twos", as hand-drawn animation is: each head
@@ -28,7 +30,7 @@ const differs = (a, b, epsilon) => Math.abs((a ?? 0) - (b ?? 0)) > epsilon;
 function moodChanged(previous, next) {
   if (!previous && !next) return false;
   if (!previous || !next || previous.id !== next.id) return true;
-  return differs(previous.amount, next.amount, MOOD_EPSILON);
+  return differs(previous.amount, next.amount, MOOD_EPSILON) || differs(previous.phase, next.phase, PHASE_EPSILON);
 }
 
 function stateChanged(previous, next) {
@@ -41,6 +43,7 @@ function stateChanged(previous, next) {
     differs(previous.lids, next.lids, LIDS_EPSILON) ||
     differs(previous.awake, next.awake, AWAKE_EPSILON) ||
     differs(previous.mouth, next.mouth, MOUTH_EPSILON) ||
+    differs(previous.wink, next.wink, LIDS_EPSILON) ||
     moodChanged(previous.mood, next.mood)
   );
 }

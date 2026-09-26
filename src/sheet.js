@@ -162,6 +162,7 @@ function L(e) {
     (I.clear(),
     B(e),
     moodBoard.gasp(moodCells(), b[e].seed, A),
+    moodBoard.picked(b[e].seed, A),
     (k.target = 1),
     document.body.classList.add(`large`),
     U());
@@ -176,7 +177,7 @@ function B(e) {
   z && t && (z.href = `/workshop.html?head=${t.seed}&sheet=${w[T]}`);
 }
 function V(e) {
-  (B(e), (k.t = Math.min(k.t, 0.82)));
+  (B(e), moodBoard.picked(b[e].seed, A), (k.t = Math.min(k.t, 0.82)));
 }
 function H() {
   (I.clear(), (k.i = 0), N());

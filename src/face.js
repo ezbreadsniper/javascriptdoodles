@@ -87,6 +87,29 @@ var g = {
       [0, 0.46],
       [0.52, -0.22],
     ],
+    pout: [
+      [-0.3, 0.14],
+      [-0.1, -0.05],
+      [0.12, -0.04],
+      [0.3, 0.16],
+    ],
+    "smirk-right": [
+      [-0.44, 0.02],
+      [0.02, 0.16],
+      [0.3, 0.02],
+      [0.48, -0.26],
+    ],
+    "smirk-left": [
+      [-0.48, -0.26],
+      [-0.3, 0.02],
+      [-0.02, 0.16],
+      [0.44, 0.02],
+    ],
+    tongue: [
+      [-0.34, 0.02],
+      [0, -0.03],
+      [0.34, 0.02],
+    ],
   },
   _ = [`line`, `smile`, `small`];
 function v(e) {
@@ -150,6 +173,25 @@ function I(e, t, n) {
 function L(e, t) {
   return [...e, ...t.slice(1, -1).reverse()];
 }
+/**
+ * A laughing mouth: a D laid on its back, the upper lip a line whose corners
+ * lift, the lower lip a deep bowl with the tongue in it. `open` (0..1) sets
+ * how deep. Built in mouth units like the other shapes.
+ */
+function laughingMouth(shape, wide, high, open) {
+  let across = 0.23 + 0.03 * open,
+    depth = 0.07 + 0.11 * Math.min(1, Math.max(0, open)),
+    upper = [],
+    lower = [];
+  for (let step = 0; step <= 8; step++) {
+    let x = step / 4 - 1,
+      lip = 0.012 - 0.04 * x * x;
+    upper.push([(x * across) / wide, lip / high]);
+    lower.push([(x * across) / wide, (lip + depth * (1 - x * x) ** 0.75) / high]);
+  }
+  let tongue = P(0, (depth * 0.74) / high, (across * 0.42) / wide, (depth * 0.22) / high, 14);
+  return { ...shape(`babbles`, upper, lower), tongue };
+}
 function R(e, t, n, r, i, a) {
   let o = 1 + i * 0.22,
     s = n * o,
@@ -178,6 +220,7 @@ function R(e, t, n, r, i, a) {
           : void 0;
     return { ...c(`babbles`, upper, lower, ring), ...(tongue ? { tongue } : {}) };
   }
+  if (e === `laugh`) return laughingMouth(c, t, s, r);
   if (r > N) {
     let { o: e, rx: i, ry: a } = I(r, t, n),
       o = P(0, 0.14, i, a, 20),
@@ -304,7 +347,22 @@ function drawLashes(pen, map, side, trace) {
     );
   }
 }
+/** A mood's wink closes only the eye on its side (`wink` is side × closure). */
+function winkedEye(state, side) {
+  let closing = state.wink && Math.sign(state.wink) === side ? Math.abs(state.wink) : 0;
+  return closing ? { ...state, lids: Math.max(state.lids, closing) } : state;
+}
 function H(e, t, n, r, i, a, o, s, c, l, d = 1 / 0) {
+  a = winkedEye(a, i);
+  let winked = a.wink && Math.sign(a.wink) === i && Math.abs(a.wink) > 0.72;
+  if (winked) {
+    e.stroke(z((x, y) => t.to(x * n, -y * n), 0, 0.16, 0.66, Math.PI * 1.1, Math.PI * 1.9), {
+      trace: `${c}-wink`,
+      w: u * 1.15,
+      wobble: 0.004,
+    });
+    return;
+  }
   let f = n * (1 + a.awake * 0.08),
     p = Math.max(0.06, 1 - a.lids * 0.94),
     m = (e, n) => t.to(e * f, -n * f * p),
@@ -895,6 +953,35 @@ function Y(e, t, n, r) {
     case `zigzag`:
       e.stroke(a(n.top), { ...o, square: !0 });
       break;
+    case `tongue`: {
+      // Blowing a raspberry: the tongue sticks out past the lower lip. It is a
+      // fixed warm pink rather than the lip accent, so it pops on every skin.
+      let across = 0.1 / n.wide,
+        down = 0.2 / (n.high * n.extend),
+        tip = [];
+      for (let step = 0; step <= 10; step++) {
+        let angle = (step / 10) * Math.PI;
+        tip.push([Math.cos(angle) * across, 0.01 + down * (0.45 + 0.55 * Math.sin(angle))]);
+      }
+      let tongue = a([[across, 0], ...tip, [-across, 0]]);
+      (e.surface(tongue, {
+        colour: `rgb(230,122,134)`,
+        trace: `tongue-out`,
+        wobble: 0.003,
+        coverage: 0.9,
+        dry: !0,
+      }),
+        e.stroke(tongue.slice(1, -1), { ...o, trace: `tongue-out-edge`, w: u * 0.8 }),
+        e.stroke([i(0, 0.02), i(0.01, down * 0.55)], {
+          ...o,
+          trace: `tongue-crease`,
+          w: u * 0.55,
+          coverage: 0.6,
+          singleLayer: !0,
+        }),
+        e.stroke(a(n.top), o));
+      break;
+    }
     case `open`: {
       let t = a(n.outline);
       (e.surface(t, {
