@@ -466,7 +466,7 @@ var o = [
         _([
           [`none`, 8],
           [`nosering`, 1.6],
-          [`lipring`, 1.4],
+          [`lipring`, 0.4],
         ]),
         {
           nosering: {
