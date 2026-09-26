@@ -3,6 +3,7 @@ import { d as t, f as n, u as r } from "./cloud.js";
 import { n as i } from "./field.js";
 import { l as a, o, d as oklch, u as oklchRgb } from "./palette.js";
 import { t as s } from "./pen.js";
+import { drawEyewear, lensTint } from "./eyewear.js";
 function c(e, t, n) {
   let r = i(t.u, t.v, e),
     a = i(t.u, t.v + t.halfV, e),
@@ -1326,85 +1327,10 @@ function ie(e, t, n, r, a, o, s, c, l, d) {
   }
 }
 function ae(t) {
-  return { colour: o(t.n()), strength: e(t, 0.02, 0.13, 0, 0.26) };
+  return lensTint(t);
 }
-function oe(e, a, o, s, c, l, d, f, p) {
-  if (d === `none`) return;
-  let { head: m, pose: h, F: g } = a,
-    _ = (e) => {
-      let t = n(r(e, h), g);
-      return { x: t.x, y: t.y };
-    },
-    v = (e) => {
-      let n = t(e, o.eyeV, m);
-      return { x: n.x, y: n.y, z: n.z + m.rz * 0.08 };
-    },
-    y = v(s),
-    b = v(c),
-    x = (b.x - y.x) / 2,
-    S = Math.min(l * 1.45, x * 0.86, m.rx * 0.36),
-    C = (e) => {
-      let t = [];
-      for (let n = 0; n < 24; n++) {
-        let r = (n / 24) * 6.2832,
-          i = Math.cos(r),
-          a = Math.sin(r);
-        if (d === `square`) {
-          let e = 0.42;
-          ((i = Math.sign(i) * Math.abs(i) ** e),
-            (a = Math.sign(a) * Math.abs(a) ** e * 0.82));
-        }
-        t.push(_({ x: e.x + i * S, y: e.y + a * S, z: e.z }));
-      }
-      return t;
-    },
-    w = (t, n) => {
-      let r = C(t);
-      (f.strength > 0.02 &&
-        e.surface(r, {
-          colour: f.colour,
-          coverage: f.strength,
-          trace: `lensTone${n}`,
-          wobble: 0.005,
-          dry: !0,
-        }),
-        e.stroke(r, {
-          trace: `lens${n}`,
-          w: u * 0.85,
-          wobble: 0.003,
-          closed: !0,
-          colour: p.ink,
-        }));
-    };
-  (w(y, 0), w(b, 1));
-  let T = _({ x: y.x + S * 0.96, y: y.y + S * 0.08, z: y.z }),
-    E = _({ x: b.x - S * 0.96, y: b.y + S * 0.08, z: b.z }),
-    D = _({ x: (y.x + b.x) / 2, y: y.y + S * 0.34, z: y.z });
-  e.stroke([T, D, E], {
-    trace: `bridge`,
-    w: u * 0.75,
-    wobble: 0.003,
-    colour: p.ink,
-  });
-  for (let [n, r] of [-1, 1].entries()) {
-    if (i(r * 1.48, o.earV, a).nz < -0.05) continue;
-    let s = r < 0 ? y : b,
-      c = t(r * 1.42, o.earV + 0.08, m);
-    e.stroke(
-      [
-        _({ x: s.x + r * S * 0.98, y: s.y + S * 0.02, z: s.z }),
-        _({ x: c.x, y: c.y, z: c.z }),
-      ],
-      {
-        trace: `temple${n}`,
-        w: u * 0.65,
-        wobble: 0.003,
-        colour: p.ink,
-        coverage: 0.85,
-        singleLayer: !0,
-      },
-    );
-  }
+function oe(...args) {
+  drawEyewear(...args);
 }
 function se(e, t) {
   let n = c(e, t.zones.eyeL, t.fill),
