@@ -676,7 +676,7 @@ function B(e) {
     k = u(`extras`),
     A = { skinT: x, hairT: S, accentT: C, inkT: w, clothT: n.n() },
     piercing = u(`piercing`),
-    necklace = (l.necklace = a(e, `necklace`).weighted(T(`necklace`, c, l)));
+    necklace = u(`necklace`);
   return {
     seed: e,
     head: i,

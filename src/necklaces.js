@@ -21,10 +21,11 @@ const CORD = tone(0.55, 0.08, 60);
 const TOOTH = tone(0.95, 0.03, 88);
 // Velvet: black, wine and teal. Black drops out on very dark skin, where it would vanish.
 const VELVET = [tone(0.27, 0.02, 280), tone(0.42, 0.14, 15), tone(0.44, 0.08, 205)];
+// Bead sets as [odd beads, front bead, even beads]: wood and amber, wood and turquoise, painted.
 const BEADS = [
   [tone(0.52, 0.08, 55), tone(0.74, 0.14, 75), tone(0.6, 0.15, 30)],
   [tone(0.52, 0.08, 55), tone(0.66, 0.11, 185), tone(0.9, 0.03, 90)],
-  [tone(0.64, 0.17, 25), tone(0.84, 0.14, 95), tone(0.6, 0.13, 250)],
+  [tone(0.68, 0.14, 30), tone(0.82, 0.13, 88), tone(0.66, 0.1, 200)],
 ];
 
 /** The knit collar's widest point (its lower edge) as a multiple of the neck, as `head.js` builds it. */
@@ -263,7 +264,7 @@ function beads(pen, frame, look) {
   const { ry } = frame;
   const colours = BEADS[Math.floor(rng.n() * BEADS.length)];
   const sag = reach(frame, 0, ry * 0.11, ry * 0.05) / ry;
-  const path = drape(frame, { lift: 0.03, sag, tuck: 0.25, wide: 1.3 });
+  const path = drape(frame, { lift: 0.03, sag, tuck: 0.25, wide: 1.15 });
   for (const p of threaded(path, 0.062)) {
     const size = p.step === 0 ? 0.04 : 0.03;
     const colour = p.step === 0 ? colours[1] : colours[p.step % 2 === 0 ? 2 : 0];
